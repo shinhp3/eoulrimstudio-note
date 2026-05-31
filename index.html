@@ -13,60 +13,65 @@
       min-height: 100vh;
     }
 
-    /* 로그인 화면 */
+    /* 프로필 선택 화면 */
     #login-screen {
       display: flex;
+      flex-direction: column;
       align-items: center;
       justify-content: center;
       min-height: 100vh;
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      background: #141414;
     }
 
-    .login-card {
-      background: white;
-      border-radius: 16px;
-      padding: 48px 40px;
-      width: 360px;
-      box-shadow: 0 20px 60px rgba(0,0,0,0.2);
-      text-align: center;
-    }
-
-    .login-card .logo { font-size: 48px; margin-bottom: 16px; }
-    .login-card h1 { font-size: 22px; color: #1a1a2e; margin-bottom: 6px; }
-    .login-card p { color: #888; font-size: 14px; margin-bottom: 32px; }
-
-    .login-card input {
-      width: 100%;
-      padding: 14px 16px;
-      border: 2px solid #e8e8e8;
-      border-radius: 10px;
-      font-size: 15px;
-      margin-bottom: 12px;
-      transition: border-color 0.2s;
-      outline: none;
-    }
-    .login-card input:focus { border-color: #667eea; }
-
-    .login-card button {
-      width: 100%;
-      padding: 14px;
-      background: linear-gradient(135deg, #667eea, #764ba2);
+    .profile-screen-title {
       color: white;
-      border: none;
-      border-radius: 10px;
-      font-size: 15px;
-      font-weight: 600;
-      cursor: pointer;
-      transition: opacity 0.2s;
+      font-size: 34px;
+      font-weight: 400;
+      margin-bottom: 48px;
+      letter-spacing: 0.5px;
     }
-    .login-card button:hover { opacity: 0.9; }
 
-    .login-error {
-      color: #e74c3c;
-      font-size: 13px;
-      margin-top: 10px;
-      display: none;
+    .profile-list {
+      display: flex;
+      gap: 32px;
+      flex-wrap: wrap;
+      justify-content: center;
     }
+
+    .profile-card {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 14px;
+      cursor: pointer;
+    }
+
+    .profile-avatar {
+      width: 120px;
+      height: 120px;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 52px;
+      border: 3px solid transparent;
+      transition: border-color 0.15s, transform 0.15s;
+      user-select: none;
+    }
+
+    .profile-card:hover .profile-avatar {
+      border-color: white;
+      transform: scale(1.05);
+    }
+
+    .profile-name {
+      color: #aaa;
+      font-size: 15px;
+      font-weight: 500;
+      transition: color 0.15s;
+    }
+
+    .profile-card:hover .profile-name { color: white; }
 
     /* 메인 앱 */
     #app { display: none; }
@@ -317,16 +322,22 @@
 </head>
 <body>
 
-<!-- 로그인 화면 -->
+<!-- 프로필 선택 화면 -->
 <div id="login-screen">
-  <div class="login-card">
-    <div class="logo">📝</div>
-    <h1>어울림스튜디오 메모장</h1>
-    <p>팀 공유 메모 공간입니다</p>
-    <input type="text" id="login-name" placeholder="이름 (예: 홍길동)" maxlength="10" />
-    <input type="password" id="login-password" placeholder="팀 비밀번호" />
-    <button onclick="login()">입장하기</button>
-    <div class="login-error" id="login-error"></div>
+  <div class="profile-screen-title">누가 볼 건가요?</div>
+  <div class="profile-list">
+    <div class="profile-card" onclick="selectProfile('신효범')">
+      <div class="profile-avatar" style="background:#5b6ee8;">🐻</div>
+      <div class="profile-name">신효범</div>
+    </div>
+    <div class="profile-card" onclick="selectProfile('밀양장석현')">
+      <div class="profile-avatar" style="background:#e8845b;">🦊</div>
+      <div class="profile-name">밀양장석현</div>
+    </div>
+    <div class="profile-card" onclick="selectProfile('에겐현진')">
+      <div class="profile-avatar" style="background:#5be8a0;">🐱</div>
+      <div class="profile-name">에겐현진</div>
+    </div>
   </div>
 </div>
 
@@ -381,7 +392,6 @@
   const WORKER_URL = "https://eoulrimstudio-note-api.YOUR_SUBDOMAIN.workers.dev";
 
   let currentUser = null;
-  let password = null;
   let currentNoteId = null;
   let notes = {};
   let saveTimer = null;
@@ -392,51 +402,24 @@
   async function api(method, path, body) {
     const res = await fetch(WORKER_URL + path, {
       method,
-      headers: {
-        "Content-Type": "application/json",
-        "X-Password": password,
-      },
+      headers: { "Content-Type": "application/json" },
       body: body ? JSON.stringify(body) : undefined,
     });
     if (!res.ok) throw new Error(await res.text());
     return res.json();
   }
 
-  // ─── 로그인 ───
-  window.login = async function () {
-    const name = document.getElementById("login-name").value.trim();
-    const pw = document.getElementById("login-password").value;
-    const errEl = document.getElementById("login-error");
-    errEl.style.display = "none";
-
-    if (!name) { showError("이름을 입력해주세요."); return; }
-    if (!pw) { showError("비밀번호를 입력해주세요."); return; }
-
-    password = pw;
-
-    try {
-      await api("GET", "/api/notes"); // 인증 테스트
-      currentUser = name;
-      sessionStorage.setItem("notepad-user", name);
-      sessionStorage.setItem("notepad-pw", pw);
-      showApp();
-    } catch {
-      showError("비밀번호가 틀렸거나 서버에 연결할 수 없습니다.");
-      password = null;
-    }
+  // ─── 프로필 선택 ───
+  window.selectProfile = function (name) {
+    currentUser = name;
+    sessionStorage.setItem("notepad-user", name);
+    showApp();
   };
 
-  function showError(msg) {
-    const el = document.getElementById("login-error");
-    el.textContent = msg;
-    el.style.display = "block";
-  }
-
   window.logout = function () {
-    sessionStorage.clear();
+    sessionStorage.removeItem("notepad-user");
     clearInterval(pollTimer);
     currentUser = null;
-    password = null;
     currentNoteId = null;
     document.getElementById("app").style.display = "none";
     document.getElementById("login-screen").style.display = "flex";
@@ -452,16 +435,10 @@
 
   // ─── 자동 로그인 복원 ───
   const savedUser = sessionStorage.getItem("notepad-user");
-  const savedPw = sessionStorage.getItem("notepad-pw");
-  if (savedUser && savedPw) {
+  if (savedUser) {
     currentUser = savedUser;
-    password = savedPw;
     showApp();
   }
-
-  document.getElementById("login-password").addEventListener("keydown", e => {
-    if (e.key === "Enter") window.login();
-  });
 
   // ─── 메모 목록 가져오기 ───
   async function fetchNotes() {

@@ -1,12 +1,10 @@
 // Cloudflare Worker - 메모장 API
 // KV 네임스페이스 바인딩 이름: NOTES_KV
 
-const TEAM_PASSWORD = "eoulrim2024"; // ← 원하는 비밀번호로 변경
-
 const CORS = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Methods": "GET, POST, DELETE, OPTIONS",
-  "Access-Control-Allow-Headers": "Content-Type, X-Password",
+  "Access-Control-Allow-Headers": "Content-Type",
 };
 
 function json(data, status = 200) {
@@ -16,18 +14,10 @@ function json(data, status = 200) {
   });
 }
 
-function checkAuth(request) {
-  return request.headers.get("X-Password") === TEAM_PASSWORD;
-}
-
 export default {
   async fetch(request, env) {
     if (request.method === "OPTIONS") {
       return new Response(null, { headers: CORS });
-    }
-
-    if (!checkAuth(request)) {
-      return json({ error: "Unauthorized" }, 401);
     }
 
     const url = new URL(request.url);
