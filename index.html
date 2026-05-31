@@ -73,8 +73,19 @@
       background-color: #f0f2f5;
       background-image: radial-gradient(circle, #c8ccd4 1px, transparent 1px);
       background-size: 28px 28px;
+      cursor: default;
     }
+    #viewport.alt-mode { cursor: grab !important; }
+    #viewport.alt-mode.panning { cursor: grabbing !important; }
     #canvas { position: absolute; top: 0; left: 0; width: 0; height: 0; transform-origin: 0 0; }
+
+    /* ── 드래그 선택 박스 ── */
+    #sel-box {
+      position: absolute; display: none; pointer-events: none; z-index: 50;
+      border: 1.5px solid #667eea;
+      background: rgba(99,102,241,0.08);
+      border-radius: 2px;
+    }
 
     /* ── 요소 공통 ── */
     .el {
@@ -84,34 +95,35 @@
       transition: box-shadow 0.15s;
     }
     .el:hover { box-shadow: 0 4px 24px rgba(0,0,0,0.18); }
-    .el.selected { outline: 2px solid #667eea; outline-offset: 2px; }
-    .el.important-flag { box-shadow: 0 2px 16px rgba(0,0,0,0.12), 0 0 0 2px #f39c12; }
-    .el.important-flag.selected { outline-color: #f39c12; }
+    .el.selected { outline: 3px solid #667eea; outline-offset: 2px; }
+    /* 중요 표시 — 굵은 주황 테두리 */
+    .el.important-flag { box-shadow: 0 2px 16px rgba(0,0,0,0.12), 0 0 0 3px #f39c12; }
+    .el.important-flag.selected { outline: 3px solid #667eea; outline-offset: 4px; box-shadow: 0 2px 16px rgba(0,0,0,0.12), 0 0 0 3px #f39c12; }
 
     .el-header {
-      height: 32px; display: flex; align-items: center; padding: 0 8px;
+      height: 34px; display: flex; align-items: center; padding: 0 8px;
       border-radius: 8px 8px 0 0; cursor: grab; flex-shrink: 0; gap: 6px;
     }
     .el-header:active { cursor: grabbing; }
     .el-author-label { font-size: 11px; font-weight: 700; color: rgba(255,255,255,0.95); flex: 1; }
 
-    /* 중요 표시 버튼 */
+    /* 중요 버튼 — 더 크고 잘 보이게 */
     .star-btn {
-      width: 22px; height: 22px; border-radius: 4px; border: none;
-      background: rgba(255,255,255,0.2); color: rgba(255,255,255,0.7);
-      font-size: 13px; cursor: pointer; display: flex; align-items: center; justify-content: center;
+      width: 26px; height: 26px; border-radius: 6px; border: none;
+      background: rgba(255,255,255,0.2); color: rgba(255,255,255,0.65);
+      font-size: 16px; cursor: pointer; display: flex; align-items: center; justify-content: center;
       transition: all 0.15s; flex-shrink: 0; line-height: 1;
     }
-    .star-btn:hover { background: rgba(255,255,255,0.35); color: white; }
-    .star-btn.starred { color: #ffd700; background: rgba(255,215,0,0.25); }
+    .star-btn:hover { background: rgba(255,255,255,0.35); color: white; transform: scale(1.1); }
+    .star-btn.starred { color: #ffd700; background: rgba(255,215,0,0.3); filter: drop-shadow(0 0 3px rgba(255,215,0,0.6)); }
 
-    /* 중요 배지 */
+    /* 중요 배지 — 더 크고 눈에 띄게 */
     .important-badge {
-      position: absolute; top: -8px; right: -8px;
-      width: 20px; height: 20px; border-radius: 50%;
-      background: #f39c12; color: white; font-size: 11px;
+      position: absolute; top: -11px; right: -11px;
+      width: 26px; height: 26px; border-radius: 50%;
+      background: #f39c12; color: white; font-size: 14px;
       display: none; align-items: center; justify-content: center;
-      box-shadow: 0 1px 4px rgba(0,0,0,0.2); z-index: 5;
+      box-shadow: 0 2px 6px rgba(243,156,18,0.5); z-index: 5;
     }
     .el.important-flag .important-badge { display: flex; }
 
@@ -189,7 +201,8 @@
   </header>
   <div id="viewport">
     <div id="canvas"></div>
-    <div class="canvas-hint">더블클릭으로 메모 추가 · 스크롤로 줌 · 드래그로 화면 이동 · ⭐ 버튼으로 중요 표시</div>
+    <div id="sel-box"></div>
+    <div class="canvas-hint">더블클릭: 메모 추가 · Alt+드래그: 화면 이동 · 드래그: 범위 선택 · Shift+클릭: 복수 선택</div>
   </div>
 </div>
 
@@ -209,27 +222,28 @@
   let currentUser = null;
   let elements = [];
   let vp = { x: 0, y: 0, zoom: 1 };
-  let selected = null;
+  let selected = new Set();   // 복수 선택 지원
   let editingId = null;
   let saveTimer = null;
   let pollTimer = null;
   let isDirty = false;
   let action = null;
+  let altDown = false;
 
-  // Undo/Redo 히스토리
+  // Undo/Redo
   let history = [];
   let historyIdx = -1;
 
   const nodeMap = new Map();
-  const canvasEl = document.getElementById('canvas');
+  const canvasEl  = document.getElementById('canvas');
   const viewportEl = document.getElementById('viewport');
+  const selBox     = document.getElementById('sel-box');
 
-  // ── 히스토리 (Undo/Redo) ──────────────────────────────
+  // ── 히스토리 ─────────────────────────────────────────
   function snapshot() {
     history = history.slice(0, historyIdx + 1);
     history.push(JSON.parse(JSON.stringify(elements)));
-    if (history.length > 60) history.shift();
-    else historyIdx++;
+    if (history.length > 60) history.shift(); else historyIdx++;
     updateUndoRedoButtons();
   }
 
@@ -237,20 +251,14 @@
     if (historyIdx <= 0) return;
     historyIdx--;
     elements = JSON.parse(JSON.stringify(history[historyIdx]));
-    stopEditing(); selected = null;
-    renderElements();
-    scheduleSave();
-    updateUndoRedoButtons();
+    stopEditing(); selected.clear(); renderElements(); scheduleSave(); updateUndoRedoButtons();
   }
 
   function redo() {
     if (historyIdx >= history.length - 1) return;
     historyIdx++;
     elements = JSON.parse(JSON.stringify(history[historyIdx]));
-    stopEditing(); selected = null;
-    renderElements();
-    scheduleSave();
-    updateUndoRedoButtons();
+    stopEditing(); selected.clear(); renderElements(); scheduleSave(); updateUndoRedoButtons();
   }
 
   function updateUndoRedoButtons() {
@@ -307,7 +315,7 @@
           e.id === editingId || data.elements.find(r => r.id === e.id)
         );
         renderElements();
-        if (history.length === 0) snapshot(); // 초기 스냅샷
+        if (history.length === 0) snapshot();
       }
       setSyncStatus('synced', '동기화됨');
     } catch {
@@ -316,13 +324,12 @@
   }
 
   async function pushData() {
-    const payload = JSON.stringify({ version: 2, elements });
     setSyncStatus('syncing', '저장 중...');
     try {
       await fetch(WORKER_URL + '/api/notes', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: payload,
+        body: JSON.stringify({ version: 2, elements }),
       });
       isDirty = false;
       setSyncStatus('synced', '저장됨 ✓');
@@ -351,8 +358,32 @@
     };
   }
 
+  // 뷰포트 내 상대 좌표 → 캔버스 좌표
+  function vpRelToCanvas(rx, ry) {
+    return { x: (rx - vp.x) / vp.zoom, y: (ry - vp.y) / vp.zoom };
+  }
+
   function updateTransform() {
     canvasEl.style.transform = `translate(${vp.x}px,${vp.y}px) scale(${vp.zoom})`;
+  }
+
+  // ── 선택 ─────────────────────────────────────────────
+  function selectEl(id, shift = false) {
+    if (!id) {
+      selected.clear();
+    } else if (shift) {
+      if (selected.has(id)) selected.delete(id);
+      else selected.add(id);
+    } else {
+      if (!selected.has(id)) { selected.clear(); selected.add(id); }
+    }
+    updateSelectionVisuals();
+  }
+
+  function updateSelectionVisuals() {
+    for (const [nid, node] of nodeMap) {
+      node.classList.toggle('selected', selected.has(nid));
+    }
   }
 
   // ── 요소 생성 ─────────────────────────────────────────
@@ -376,7 +407,7 @@
     elements.push(el);
     snapshot();
     renderElements();
-    selectEl(el.id);
+    selected.clear(); selected.add(el.id); updateSelectionVisuals();
     setTimeout(() => startEditing(el.id), 30);
     scheduleSave();
   }
@@ -401,19 +432,21 @@
       elements.push(el);
       snapshot();
       renderElements();
-      selectEl(el.id);
+      selected.clear(); selected.add(el.id); updateSelectionVisuals();
       scheduleSave();
     };
     img.src = src;
   }
 
   function deleteSelected() {
-    if (!selected) return;
+    if (selected.size === 0) return;
     stopEditing();
-    elements = elements.filter(e => e.id !== selected);
-    const node = nodeMap.get(selected);
-    if (node) { canvasEl.removeChild(node); nodeMap.delete(selected); }
-    selected = null;
+    elements = elements.filter(e => !selected.has(e.id));
+    for (const id of selected) {
+      const node = nodeMap.get(id);
+      if (node) { canvasEl.removeChild(node); nodeMap.delete(id); }
+    }
+    selected.clear();
     snapshot();
     scheduleSave();
   }
@@ -428,13 +461,6 @@
     scheduleSave();
   }
 
-  function selectEl(id) {
-    selected = id;
-    for (const [nid, node] of nodeMap) {
-      node.classList.toggle('selected', nid === id);
-    }
-  }
-
   // ── 편집 ─────────────────────────────────────────────
   function startEditing(id) {
     editingId = id;
@@ -447,27 +473,17 @@
   function stopEditing() {
     if (!editingId) return;
     const node = nodeMap.get(editingId);
-    if (node) {
-      const ta = node.querySelector('.el-text');
-      if (ta) ta.classList.remove('editing');
-    }
+    if (node) { const ta = node.querySelector('.el-text'); if (ta) ta.classList.remove('editing'); }
     editingId = null;
   }
 
   // ── 렌더 ─────────────────────────────────────────────
   function renderElements() {
     for (const [id, node] of nodeMap) {
-      if (!elements.find(e => e.id === id)) {
-        canvasEl.removeChild(node);
-        nodeMap.delete(id);
-      }
+      if (!elements.find(e => e.id === id)) { canvasEl.removeChild(node); nodeMap.delete(id); }
     }
     for (const el of elements) {
-      if (!nodeMap.has(el.id)) {
-        const node = buildNode(el);
-        canvasEl.appendChild(node);
-        nodeMap.set(el.id, node);
-      }
+      if (!nodeMap.has(el.id)) { const node = buildNode(el); canvasEl.appendChild(node); nodeMap.set(el.id, node); }
       syncStyle(el);
     }
   }
@@ -478,7 +494,6 @@
     div.className = `el el-${el.type}`;
     div.dataset.id = el.id;
 
-    // 헤더
     const header = document.createElement('div');
     header.className = 'el-header';
     header.style.background = p.color;
@@ -488,7 +503,6 @@
     authorLabel.textContent = `${p.emoji} ${el.author}`;
     header.appendChild(authorLabel);
 
-    // 중요 버튼
     const starBtn = document.createElement('button');
     starBtn.className = 'star-btn' + (el.important ? ' starred' : '');
     starBtn.title = '중요 표시';
@@ -503,42 +517,33 @@
       const body = document.createElement('div');
       body.className = 'el-body';
       body.style.background = p.light;
-
       const ta = document.createElement('textarea');
       ta.className = 'el-text';
       ta.placeholder = '메모를 입력하세요...';
       ta.value = el.content || '';
-
       let textSnapshotTimer = null;
       ta.addEventListener('input', () => {
-        el.content = ta.value;
-        el.updatedAt = Date.now();
-        scheduleSave();
+        el.content = ta.value; el.updatedAt = Date.now(); scheduleSave();
         clearTimeout(textSnapshotTimer);
         textSnapshotTimer = setTimeout(snapshot, 1000);
       });
       ta.addEventListener('mousedown', e => { if (editingId === el.id) e.stopPropagation(); });
-
       body.appendChild(ta);
       div.appendChild(body);
     } else if (el.type === 'image') {
       const body = document.createElement('div');
       body.className = 'el-img-body';
       const img = document.createElement('img');
-      img.src = el.src;
-      img.alt = '이미지';
-      img.draggable = false;
+      img.src = el.src; img.alt = '이미지'; img.draggable = false;
       body.appendChild(img);
       div.appendChild(body);
     }
 
-    // 중요 배지
     const badge = document.createElement('div');
     badge.className = 'important-badge';
     badge.textContent = '★';
     div.appendChild(badge);
 
-    // 리사이즈 핸들
     const handle = document.createElement('div');
     handle.className = 'resize-handle';
     handle.dataset.resize = 'true';
@@ -551,23 +556,16 @@
     const node = nodeMap.get(el.id);
     if (!node) return;
     const p = prof(el.author);
-
-    node.style.left   = el.x + 'px';
-    node.style.top    = el.y + 'px';
-    node.style.width  = el.w + 'px';
-    node.style.height = el.h + 'px';
-    node.classList.toggle('selected', selected === el.id);
+    node.style.left = el.x + 'px'; node.style.top = el.y + 'px';
+    node.style.width = el.w + 'px'; node.style.height = el.h + 'px';
+    node.classList.toggle('selected', selected.has(el.id));
     node.classList.toggle('important-flag', !!el.important);
-
     const header = node.querySelector('.el-header');
     if (header) header.style.background = p.color;
-
     const body = node.querySelector('.el-body');
     if (body) body.style.background = p.light;
-
     const starBtn = node.querySelector('.star-btn');
     if (starBtn) starBtn.className = 'star-btn' + (el.important ? ' starred' : '');
-
     if (el.type === 'sticky' && editingId !== el.id) {
       const ta = node.querySelector('.el-text');
       if (ta && ta.value !== (el.content || '')) ta.value = el.content || '';
@@ -578,55 +576,82 @@
   viewportEl.addEventListener('mousedown', e => {
     if (e.button !== 0) return;
 
+    // 편집 중 처리
     if (editingId) {
       const node = nodeMap.get(editingId);
       if (node?.contains(e.target)) return;
       stopEditing();
     }
 
+    const r = viewportEl.getBoundingClientRect();
+
+    // Alt + 드래그 → 팬
+    if (altDown) {
+      viewportEl.classList.add('panning');
+      action = { type: 'pan', sx: e.clientX, sy: e.clientY, vx: vp.x, vy: vp.y };
+      e.preventDefault();
+      return;
+    }
+
+    // 리사이즈 핸들
     if (e.target.dataset.resize) {
       const elDiv = e.target.closest('.el');
       const id = elDiv?.dataset.id;
       const el = elements.find(x => x.id === id);
       if (!el) return;
-      selectEl(id);
+      if (!selected.has(id)) { selected.clear(); selected.add(id); updateSelectionVisuals(); }
       action = { type: 'resize', id, sx: e.clientX, sy: e.clientY, sw: el.w, sh: el.h };
       e.preventDefault();
       return;
     }
 
+    // 요소 클릭 → 이동 준비
     const elDiv = e.target.closest('.el');
     if (elDiv) {
       const id = elDiv.dataset.id;
       const el = elements.find(x => x.id === id);
       if (!el) return;
-      selectEl(id);
-      action = { type: 'move', id, sx: e.clientX, sy: e.clientY, ex: el.x, ey: el.y, moved: false };
+      selectEl(id, e.shiftKey);
+      // 선택된 모든 요소의 시작 위치 기록
+      const startPositions = [...selected].map(sid => {
+        const sel = elements.find(x => x.id === sid);
+        return sel ? { id: sid, x: sel.x, y: sel.y } : null;
+      }).filter(Boolean);
+      action = { type: 'move', sx: e.clientX, sy: e.clientY, startPositions, moved: false };
       e.preventDefault();
       return;
     }
 
-    selectEl(null);
-    action = { type: 'pan', sx: e.clientX, sy: e.clientY, vx: vp.x, vy: vp.y };
+    // 빈 캔버스 → 범위 선택(마퀴)
+    if (!e.shiftKey) selected.clear();
+    const mx = e.clientX - r.left;
+    const my = e.clientY - r.top;
+    action = { type: 'marquee', sx: mx, sy: my, cx: mx, cy: my };
+    selBox.style.display = 'block';
+    selBox.style.left = mx + 'px'; selBox.style.top = my + 'px';
+    selBox.style.width = '0'; selBox.style.height = '0';
+    updateSelectionVisuals();
   });
 
   document.addEventListener('mousemove', e => {
     if (!action) return;
     const dx = e.clientX - action.sx;
     const dy = e.clientY - action.sy;
+    const r = viewportEl.getBoundingClientRect();
 
     if (action.type === 'pan') {
-      vp.x = action.vx + dx;
-      vp.y = action.vy + dy;
+      vp.x = action.vx + dx; vp.y = action.vy + dy;
       updateTransform();
 
     } else if (action.type === 'move') {
-      const el = elements.find(x => x.id === action.id);
-      if (!el) return;
       if (Math.abs(dx) > 3 || Math.abs(dy) > 3) action.moved = true;
-      el.x = action.ex + dx / vp.zoom;
-      el.y = action.ey + dy / vp.zoom;
-      syncStyle(el);
+      for (const sp of action.startPositions) {
+        const el = elements.find(x => x.id === sp.id);
+        if (!el) continue;
+        el.x = sp.x + dx / vp.zoom;
+        el.y = sp.y + dy / vp.zoom;
+        syncStyle(el);
+      }
       scheduleSave();
 
     } else if (action.type === 'resize') {
@@ -636,17 +661,38 @@
       el.h = Math.max(60,  action.sh + dy / vp.zoom);
       syncStyle(el);
       scheduleSave();
+
+    } else if (action.type === 'marquee') {
+      const cx = e.clientX - r.left;
+      const cy = e.clientY - r.top;
+      action.cx = cx; action.cy = cy;
+      const x1 = Math.min(action.sx, cx), y1 = Math.min(action.sy, cy);
+      const x2 = Math.max(action.sx, cx), y2 = Math.max(action.sy, cy);
+      selBox.style.left = x1 + 'px'; selBox.style.top = y1 + 'px';
+      selBox.style.width = (x2 - x1) + 'px'; selBox.style.height = (y2 - y1) + 'px';
+
+      // 마퀴와 겹치는 요소 선택
+      const c1 = vpRelToCanvas(x1, y1);
+      const c2 = vpRelToCanvas(x2, y2);
+      for (const el of elements) {
+        const hit = c1.x < el.x + el.w && c2.x > el.x && c1.y < el.y + el.h && c2.y > el.y;
+        if (hit) selected.add(el.id); else selected.delete(el.id);
+      }
+      updateSelectionVisuals();
     }
   });
 
-  document.addEventListener('mouseup', () => {
+  document.addEventListener('mouseup', e => {
+    if (action?.type === 'pan') viewportEl.classList.remove('panning');
     if (action?.type === 'move' && action.moved) snapshot();
     if (action?.type === 'resize') snapshot();
+    if (action?.type === 'marquee') { selBox.style.display = 'none'; }
     action = null;
   });
 
-  // 더블클릭
+  // 더블클릭: 스티커 편집 or 생성
   viewportEl.addEventListener('dblclick', e => {
+    if (altDown) return;
     const sticky = e.target.closest('.el-sticky');
     if (sticky) { startEditing(sticky.dataset.id); return; }
     if (e.target.closest('.el')) return;
@@ -660,38 +706,43 @@
     const factor = e.deltaY > 0 ? 0.92 : 1.08;
     const newZoom = Math.max(0.15, Math.min(5, vp.zoom * factor));
     const r = viewportEl.getBoundingClientRect();
-    const mx = e.clientX - r.left;
-    const my = e.clientY - r.top;
+    const mx = e.clientX - r.left, my = e.clientY - r.top;
     vp.x = mx - (mx - vp.x) * (newZoom / vp.zoom);
     vp.y = my - (my - vp.y) * (newZoom / vp.zoom);
     vp.zoom = newZoom;
     updateTransform();
   }, { passive: false });
 
-  // 키보드
+  // Alt 키 추적
   document.addEventListener('keydown', e => {
+    if (e.key === 'Alt') { e.preventDefault(); altDown = true; viewportEl.classList.add('alt-mode'); }
+
     // Ctrl+Z
-    if (e.key === 'z' && (e.ctrlKey || e.metaKey) && !e.shiftKey) {
-      e.preventDefault(); undo(); return;
-    }
-    // Ctrl+Shift+Z
-    if (e.key === 'z' && (e.ctrlKey || e.metaKey) && e.shiftKey) {
-      e.preventDefault(); redo(); return;
-    }
-    // Ctrl+Y (Windows 스타일 redo)
-    if (e.key === 'y' && (e.ctrlKey || e.metaKey)) {
-      e.preventDefault(); redo(); return;
-    }
+    if (e.key === 'z' && (e.ctrlKey || e.metaKey) && !e.shiftKey) { e.preventDefault(); undo(); return; }
+    // Ctrl+Shift+Z / Ctrl+Y
+    if ((e.key === 'z' && (e.ctrlKey || e.metaKey) && e.shiftKey) ||
+        (e.key === 'y' && (e.ctrlKey || e.metaKey))) { e.preventDefault(); redo(); return; }
+
     if (editingId) return;
-    if ((e.key === 'Delete' || e.key === 'Backspace') && selected) {
+    if ((e.key === 'Delete' || e.key === 'Backspace') && selected.size > 0) {
       e.preventDefault(); deleteSelected();
     }
     if (e.key === '0' && (e.ctrlKey || e.metaKey)) {
       e.preventDefault(); vp = { x: 0, y: 0, zoom: 1 }; updateTransform();
     }
+    // Ctrl+A: 전체 선택
+    if (e.key === 'a' && (e.ctrlKey || e.metaKey) && !editingId) {
+      e.preventDefault();
+      elements.forEach(el => selected.add(el.id));
+      updateSelectionVisuals();
+    }
   });
 
-  // 클립보드 이미지 붙여넣기
+  document.addEventListener('keyup', e => {
+    if (e.key === 'Alt') { altDown = false; viewportEl.classList.remove('alt-mode'); viewportEl.classList.remove('panning'); }
+  });
+
+  // 클립보드 이미지
   document.addEventListener('paste', async e => {
     if (editingId) return;
     const items = e.clipboardData?.items;
@@ -699,8 +750,7 @@
     for (const item of items) {
       if (item.type.startsWith('image/')) {
         e.preventDefault();
-        const src = await fileToBase64(item.getAsFile());
-        addImage(src);
+        addImage(await fileToBase64(item.getAsFile()));
         return;
       }
     }
@@ -710,12 +760,10 @@
   document.getElementById('file-input').addEventListener('change', async e => {
     const file = e.target.files?.[0];
     if (!file) return;
-    const src = await fileToBase64(file);
-    addImage(src);
+    addImage(await fileToBase64(file));
     e.target.value = '';
   });
 
-  // ── 이미지 리사이즈 ───────────────────────────────────
   function fileToBase64(file) {
     return new Promise(resolve => {
       const img = new Image();
@@ -723,10 +771,7 @@
       img.onload = () => {
         const MAX = 1200;
         let w = img.width, h = img.height;
-        if (w > MAX || h > MAX) {
-          const r = Math.min(MAX / w, MAX / h);
-          w = Math.round(w * r); h = Math.round(h * r);
-        }
+        if (w > MAX || h > MAX) { const r = Math.min(MAX/w, MAX/h); w = Math.round(w*r); h = Math.round(h*r); }
         const c = document.createElement('canvas');
         c.width = w; c.height = h;
         c.getContext('2d').drawImage(img, 0, 0, w, h);
