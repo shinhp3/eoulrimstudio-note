@@ -222,10 +222,6 @@
     }
 
     /* ── 국밥 푸터 ── */
-    .gukbap-footer {
-      background: #e8f5f4 !important;
-      color: #3d9e96 !important; opacity: 1 !important;
-    }
     .gukbap-footer::before { content: '🏺 '; }
 
 
@@ -277,10 +273,6 @@
     }
 
     /* ── 공주 푸터 ── */
-    .princess-footer {
-      background: #ffe4ef !important;
-      color: #c2185b !important;
-    }
     .princess-footer::before { content: '🌸 '; }
 
     /* ── 공주 리본 장식 ── */
@@ -723,11 +715,9 @@
     const footer = document.createElement('div');
     footer.className = 'el-footer' + (isPrincess ? ' princess-footer' : isGukbap ? ' gukbap-footer' : '');
     footer.textContent = formatDate(el.updatedAt);
-    if (!isPrincess && !isGukbap) {
-      footer.style.background = p.light;
-      footer.style.color = p.color;
-      footer.style.opacity = '0.85';
-    }
+    footer.style.background = p.light;
+    footer.style.color = p.color;
+    footer.style.opacity = '0.85';
     div.appendChild(footer);
 
     const badge = document.createElement('div');
@@ -767,11 +757,9 @@
     const footer = node.querySelector('.el-footer');
     if (footer) {
       footer.textContent = formatDate(el.updatedAt);
-      if (!isCustom) {
-        footer.style.background = p.light;
-        footer.style.color = p.color;
-        footer.style.opacity = '0.85';
-      }
+      footer.style.background = p.light;
+      footer.style.color = p.color;
+      footer.style.opacity = '0.85';
     }
   }
 
