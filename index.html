@@ -6,67 +6,72 @@
   <title>어울림스튜디오 메모장</title>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
-    body { font-family: 'Segoe UI', -apple-system, sans-serif; overflow: hidden; background: #0f0f1a; }
+    body { font-family: 'Segoe UI', -apple-system, sans-serif; overflow: hidden; background: #f0f2f5; }
 
     /* ── 프로필 화면 ── */
     #login-screen {
       display: flex; flex-direction: column; align-items: center; justify-content: center;
-      min-height: 100vh; background: #141414;
+      min-height: 100vh; background: #f0f2f5;
     }
-    .profile-title { color: white; font-size: 34px; font-weight: 400; margin-bottom: 48px; }
-    .profile-list { display: flex; gap: 32px; flex-wrap: wrap; justify-content: center; }
-    .profile-card { display: flex; flex-direction: column; align-items: center; gap: 14px; cursor: pointer; }
+    .profile-title { color: #1a1a2e; font-size: 30px; font-weight: 600; margin-bottom: 12px; }
+    .profile-sub { color: #888; font-size: 14px; margin-bottom: 48px; }
+    .profile-list { display: flex; gap: 28px; flex-wrap: wrap; justify-content: center; }
+    .profile-card {
+      display: flex; flex-direction: column; align-items: center; gap: 12px;
+      cursor: pointer; padding: 24px; border-radius: 16px;
+      background: white; border: 2px solid #eee;
+      transition: all 0.15s; box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+    }
+    .profile-card:hover { border-color: #667eea; transform: translateY(-4px); box-shadow: 0 8px 24px rgba(0,0,0,0.12); }
     .profile-avatar {
-      width: 120px; height: 120px; border-radius: 8px;
+      width: 100px; height: 100px; border-radius: 50%;
       display: flex; align-items: center; justify-content: center;
-      font-size: 52px; border: 3px solid transparent;
-      transition: border-color 0.15s, transform 0.15s; user-select: none;
+      font-size: 44px; user-select: none;
     }
-    .profile-card:hover .profile-avatar { border-color: white; transform: scale(1.05); }
-    .profile-name { color: #aaa; font-size: 15px; font-weight: 500; transition: color 0.15s; }
-    .profile-card:hover .profile-name { color: white; }
+    .profile-name { color: #333; font-size: 15px; font-weight: 600; }
 
     /* ── 앱 ── */
     #app { display: none; flex-direction: column; height: 100vh; }
 
     /* ── 헤더 ── */
     header {
-      height: 52px; background: #1e1e2e; border-bottom: 1px solid #2a2a3e;
+      height: 52px; background: white; border-bottom: 1px solid #e8e8e8;
       display: flex; align-items: center; padding: 0 16px; gap: 8px;
-      flex-shrink: 0; z-index: 200;
+      flex-shrink: 0; z-index: 200; box-shadow: 0 1px 4px rgba(0,0,0,0.06);
     }
     .logo { font-size: 20px; }
-    .app-title { color: white; font-size: 15px; font-weight: 700; margin-right: 4px; }
+    .app-title { color: #1a1a2e; font-size: 15px; font-weight: 700; margin-right: 4px; }
     .sync-pill {
       display: flex; align-items: center; gap: 5px; font-size: 11px;
       padding: 3px 9px; border-radius: 20px; transition: all 0.3s;
     }
-    .sync-pill.synced { color: #10b981; background: #06403033; }
-    .sync-pill.syncing { color: #f97316; background: #7c2d1233; }
-    .sync-pill.error   { color: #ef4444; background: #7f1d1d33; }
+    .sync-pill.synced { color: #27ae60; background: #eafaf1; }
+    .sync-pill.syncing { color: #e67e22; background: #fff4e6; }
+    .sync-pill.error   { color: #e74c3c; background: #fdf2f2; }
     .sync-dot { width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
     .sync-pill.synced .sync-dot { animation: pulse 2s infinite; }
     @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.3} }
     .sep { flex: 1; }
     .tool-btn {
       display: flex; align-items: center; gap: 5px;
-      padding: 6px 12px; border-radius: 8px; border: 1px solid #3a3a4e;
-      background: #2a2a3e; color: #ccc; font-size: 13px; cursor: pointer;
+      padding: 6px 12px; border-radius: 8px; border: 1px solid #e0e0e0;
+      background: white; color: #555; font-size: 13px; cursor: pointer;
       transition: all 0.15s; white-space: nowrap;
     }
-    .tool-btn:hover { background: #3a3a5e; border-color: #5a5a7e; color: white; }
-    .user-pill { padding: 5px 12px; border-radius: 20px; font-size: 13px; font-weight: 600; color: white; }
+    .tool-btn:hover { background: #f5f5f5; border-color: #ccc; color: #222; }
+    .tool-btn:disabled { opacity: 0.35; cursor: not-allowed; }
+    .user-pill { padding: 5px 14px; border-radius: 20px; font-size: 13px; font-weight: 600; color: white; }
     .logout-btn {
-      background: none; border: 1px solid #3a3a4e; padding: 5px 12px;
-      border-radius: 8px; font-size: 12px; color: #888; cursor: pointer;
+      background: none; border: 1px solid #e0e0e0; padding: 5px 12px;
+      border-radius: 8px; font-size: 12px; color: #aaa; cursor: pointer;
     }
-    .logout-btn:hover { border-color: #666; color: #ccc; }
+    .logout-btn:hover { border-color: #bbb; color: #666; }
 
     /* ── 캔버스 ── */
     #viewport {
       flex: 1; position: relative; overflow: hidden;
-      background-color: #0f0f1a;
-      background-image: radial-gradient(circle, #252538 1.2px, transparent 1.2px);
+      background-color: #f0f2f5;
+      background-image: radial-gradient(circle, #c8ccd4 1px, transparent 1px);
       background-size: 28px 28px;
     }
     #canvas { position: absolute; top: 0; left: 0; width: 0; height: 0; transform-origin: 0 0; }
@@ -74,38 +79,60 @@
     /* ── 요소 공통 ── */
     .el {
       position: absolute; border-radius: 8px;
-      box-shadow: 0 4px 24px rgba(0,0,0,0.45);
-      transition: box-shadow 0.15s;
+      box-shadow: 0 2px 16px rgba(0,0,0,0.12);
       display: flex; flex-direction: column;
+      transition: box-shadow 0.15s;
     }
-    .el.selected { outline: 2px solid rgba(255,255,255,0.75); outline-offset: 2px; }
+    .el:hover { box-shadow: 0 4px 24px rgba(0,0,0,0.18); }
+    .el.selected { outline: 2px solid #667eea; outline-offset: 2px; }
+    .el.important-flag { box-shadow: 0 2px 16px rgba(0,0,0,0.12), 0 0 0 2px #f39c12; }
+    .el.important-flag.selected { outline-color: #f39c12; }
+
     .el-header {
-      height: 30px; display: flex; align-items: center; padding: 0 10px;
-      border-radius: 8px 8px 0 0; cursor: grab; flex-shrink: 0;
+      height: 32px; display: flex; align-items: center; padding: 0 8px;
+      border-radius: 8px 8px 0 0; cursor: grab; flex-shrink: 0; gap: 6px;
     }
     .el-header:active { cursor: grabbing; }
-    .el-author-label { font-size: 11px; font-weight: 700; color: rgba(255,255,255,0.92); letter-spacing: 0.3px; }
+    .el-author-label { font-size: 11px; font-weight: 700; color: rgba(255,255,255,0.95); flex: 1; }
+
+    /* 중요 표시 버튼 */
+    .star-btn {
+      width: 22px; height: 22px; border-radius: 4px; border: none;
+      background: rgba(255,255,255,0.2); color: rgba(255,255,255,0.7);
+      font-size: 13px; cursor: pointer; display: flex; align-items: center; justify-content: center;
+      transition: all 0.15s; flex-shrink: 0; line-height: 1;
+    }
+    .star-btn:hover { background: rgba(255,255,255,0.35); color: white; }
+    .star-btn.starred { color: #ffd700; background: rgba(255,215,0,0.25); }
+
+    /* 중요 배지 */
+    .important-badge {
+      position: absolute; top: -8px; right: -8px;
+      width: 20px; height: 20px; border-radius: 50%;
+      background: #f39c12; color: white; font-size: 11px;
+      display: none; align-items: center; justify-content: center;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.2); z-index: 5;
+    }
+    .el.important-flag .important-badge { display: flex; }
 
     /* ── 스티커 노트 ── */
-    .el-sticky {}
     .el-body { flex: 1; border-radius: 0 0 8px 8px; padding: 10px; min-height: 0; }
     .el-text {
       width: 100%; height: 100%; border: none; outline: none; resize: none;
       font-size: 13px; line-height: 1.75; background: transparent;
-      color: #1a1a2e; font-family: inherit; pointer-events: none; cursor: default;
+      color: #2c2c2c; font-family: inherit; pointer-events: none; cursor: default;
     }
     .el-text.editing { pointer-events: auto; cursor: text; }
 
     /* ── 이미지 ── */
-    .el-image {}
-    .el-img-body { flex: 1; border-radius: 0 0 8px 8px; overflow: hidden; background: #111; }
+    .el-img-body { flex: 1; border-radius: 0 0 8px 8px; overflow: hidden; background: #f8f8f8; }
     .el-img-body img { width: 100%; height: 100%; object-fit: contain; display: block; pointer-events: none; }
 
     /* ── 리사이즈 핸들 ── */
     .resize-handle {
       position: absolute; right: -6px; bottom: -6px;
       width: 13px; height: 13px; border-radius: 3px;
-      cursor: nwse-resize; background: white; border: 2px solid #6366f1;
+      cursor: nwse-resize; background: white; border: 2px solid #667eea;
       opacity: 0; transition: opacity 0.15s; z-index: 10;
     }
     .el.selected .resize-handle { opacity: 1; }
@@ -113,8 +140,8 @@
     /* ── 힌트 ── */
     .canvas-hint {
       position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%);
-      color: #2a2a4e; font-size: 12px; pointer-events: none;
-      background: rgba(255,255,255,0.04); padding: 6px 16px; border-radius: 20px;
+      color: #bbb; font-size: 12px; pointer-events: none;
+      background: rgba(0,0,0,0.05); padding: 6px 16px; border-radius: 20px;
       white-space: nowrap;
     }
 
@@ -125,19 +152,20 @@
 
 <!-- 프로필 선택 -->
 <div id="login-screen">
-  <div class="profile-title">누가 볼 건가요?</div>
+  <div class="profile-title">📝 어울림스튜디오 메모장</div>
+  <div class="profile-sub">누가 볼 건가요?</div>
   <div class="profile-list">
     <div class="profile-card" onclick="selectProfile('신효범')">
-      <div class="profile-avatar" style="background:#6366f1;">🐻</div>
-      <div class="profile-name">신효범</div>
+      <div class="profile-avatar" style="background:#eef2ff;">🐻</div>
+      <div class="profile-name" style="color:#6366f1;">신효범</div>
     </div>
     <div class="profile-card" onclick="selectProfile('밀양장석현')">
-      <div class="profile-avatar" style="background:#f97316;">🦊</div>
-      <div class="profile-name">밀양장석현</div>
+      <div class="profile-avatar" style="background:#fff7ed;">🦊</div>
+      <div class="profile-name" style="color:#f97316;">밀양장석현</div>
     </div>
     <div class="profile-card" onclick="selectProfile('에겐현진')">
-      <div class="profile-avatar" style="background:#10b981;">🐱</div>
-      <div class="profile-name">에겐현진</div>
+      <div class="profile-avatar" style="background:#ecfdf5;">🐱</div>
+      <div class="profile-name" style="color:#10b981;">에겐현진</div>
     </div>
   </div>
 </div>
@@ -152,6 +180,8 @@
       <span id="sync-text">동기화됨</span>
     </div>
     <div class="sep"></div>
+    <button class="tool-btn" id="btn-undo" onclick="undo()" title="실행취소 (Ctrl+Z)">↩ 취소</button>
+    <button class="tool-btn" id="btn-redo" onclick="redo()" title="다시실행 (Ctrl+Shift+Z)">↪ 다시</button>
     <button class="tool-btn" onclick="addSticky()">✏️ 메모 추가</button>
     <button class="tool-btn" onclick="document.getElementById('file-input').click()">🖼 사진 추가</button>
     <div class="user-pill" id="user-pill"></div>
@@ -159,7 +189,7 @@
   </header>
   <div id="viewport">
     <div id="canvas"></div>
-    <div class="canvas-hint">더블클릭으로 메모 추가 · 스크롤로 줌 · 드래그로 화면 이동</div>
+    <div class="canvas-hint">더블클릭으로 메모 추가 · 스크롤로 줌 · 드래그로 화면 이동 · ⭐ 버튼으로 중요 표시</div>
   </div>
 </div>
 
@@ -178,18 +208,58 @@
   // ── 상태 ──────────────────────────────────────────────
   let currentUser = null;
   let elements = [];
-  let vp = { x: 0, y: 0, zoom: 1 };  // viewport
+  let vp = { x: 0, y: 0, zoom: 1 };
   let selected = null;
   let editingId = null;
   let saveTimer = null;
   let pollTimer = null;
   let isDirty = false;
   let action = null;
-  // action: { type:'pan'|'move'|'resize', sx, sy, ... }
+
+  // Undo/Redo 히스토리
+  let history = [];
+  let historyIdx = -1;
 
   const nodeMap = new Map();
   const canvasEl = document.getElementById('canvas');
   const viewportEl = document.getElementById('viewport');
+
+  // ── 히스토리 (Undo/Redo) ──────────────────────────────
+  function snapshot() {
+    history = history.slice(0, historyIdx + 1);
+    history.push(JSON.parse(JSON.stringify(elements)));
+    if (history.length > 60) history.shift();
+    else historyIdx++;
+    updateUndoRedoButtons();
+  }
+
+  function undo() {
+    if (historyIdx <= 0) return;
+    historyIdx--;
+    elements = JSON.parse(JSON.stringify(history[historyIdx]));
+    stopEditing(); selected = null;
+    renderElements();
+    scheduleSave();
+    updateUndoRedoButtons();
+  }
+
+  function redo() {
+    if (historyIdx >= history.length - 1) return;
+    historyIdx++;
+    elements = JSON.parse(JSON.stringify(history[historyIdx]));
+    stopEditing(); selected = null;
+    renderElements();
+    scheduleSave();
+    updateUndoRedoButtons();
+  }
+
+  function updateUndoRedoButtons() {
+    document.getElementById('btn-undo').disabled = historyIdx <= 0;
+    document.getElementById('btn-redo').disabled = historyIdx >= history.length - 1;
+  }
+
+  window.undo = undo;
+  window.redo = redo;
 
   // ── 프로필 / 로그인 ───────────────────────────────────
   window.selectProfile = function(name) {
@@ -213,6 +283,7 @@
     const pill = document.getElementById('user-pill');
     pill.textContent = `${p.emoji} ${currentUser}`;
     pill.style.background = p.color;
+    updateUndoRedoButtons();
     fetchData();
     pollTimer = setInterval(() => { if (!isDirty) fetchData(); }, 10000);
   }
@@ -224,7 +295,6 @@
       const res = await fetch(WORKER_URL + '/api/notes');
       const data = await res.json();
       if (data.version === 2 && Array.isArray(data.elements)) {
-        // 원격 변경사항만 반영 (현재 편집 중인 요소 제외)
         for (const remote of data.elements) {
           const local = elements.find(e => e.id === remote.id);
           if (!local) {
@@ -233,11 +303,11 @@
             Object.assign(local, remote);
           }
         }
-        // 원격에서 삭제된 요소 제거
         elements = elements.filter(e =>
           e.id === editingId || data.elements.find(r => r.id === e.id)
         );
         renderElements();
+        if (history.length === 0) snapshot(); // 초기 스냅샷
       }
       setSyncStatus('synced', '동기화됨');
     } catch {
@@ -300,10 +370,11 @@
     const el = {
       id: newId(), type: 'sticky',
       x, y, w: 220, h: 160,
-      content: '', author: currentUser,
+      content: '', author: currentUser, important: false,
       createdAt: Date.now(), updatedAt: Date.now(),
     };
     elements.push(el);
+    snapshot();
     renderElements();
     selectEl(el.id);
     setTimeout(() => startEditing(el.id), 30);
@@ -324,11 +395,11 @@
       const el = {
         id: newId(), type: 'image',
         x: cx - w / 2, y: cy - h / 2,
-        w, h, src,
-        author: currentUser,
+        w, h, src, author: currentUser, important: false,
         createdAt: Date.now(), updatedAt: Date.now(),
       };
       elements.push(el);
+      snapshot();
       renderElements();
       selectEl(el.id);
       scheduleSave();
@@ -343,6 +414,17 @@
     const node = nodeMap.get(selected);
     if (node) { canvasEl.removeChild(node); nodeMap.delete(selected); }
     selected = null;
+    snapshot();
+    scheduleSave();
+  }
+
+  function toggleImportant(id) {
+    const el = elements.find(e => e.id === id);
+    if (!el) return;
+    el.important = !el.important;
+    el.updatedAt = Date.now();
+    syncStyle(el);
+    snapshot();
     scheduleSave();
   }
 
@@ -374,14 +456,12 @@
 
   // ── 렌더 ─────────────────────────────────────────────
   function renderElements() {
-    // 삭제된 요소 제거
     for (const [id, node] of nodeMap) {
       if (!elements.find(e => e.id === id)) {
         canvasEl.removeChild(node);
         nodeMap.delete(id);
       }
     }
-    // 새 요소 추가 & 기존 요소 업데이트
     for (const el of elements) {
       if (!nodeMap.has(el.id)) {
         const node = buildNode(el);
@@ -402,7 +482,21 @@
     const header = document.createElement('div');
     header.className = 'el-header';
     header.style.background = p.color;
-    header.innerHTML = `<span class="el-author-label">${p.emoji} ${el.author}</span>`;
+
+    const authorLabel = document.createElement('span');
+    authorLabel.className = 'el-author-label';
+    authorLabel.textContent = `${p.emoji} ${el.author}`;
+    header.appendChild(authorLabel);
+
+    // 중요 버튼
+    const starBtn = document.createElement('button');
+    starBtn.className = 'star-btn' + (el.important ? ' starred' : '');
+    starBtn.title = '중요 표시';
+    starBtn.textContent = '★';
+    starBtn.addEventListener('mousedown', e => e.stopPropagation());
+    starBtn.addEventListener('click', e => { e.stopPropagation(); toggleImportant(el.id); });
+    header.appendChild(starBtn);
+
     div.appendChild(header);
 
     if (el.type === 'sticky') {
@@ -414,17 +508,19 @@
       ta.className = 'el-text';
       ta.placeholder = '메모를 입력하세요...';
       ta.value = el.content || '';
+
+      let textSnapshotTimer = null;
       ta.addEventListener('input', () => {
         el.content = ta.value;
         el.updatedAt = Date.now();
         scheduleSave();
+        clearTimeout(textSnapshotTimer);
+        textSnapshotTimer = setTimeout(snapshot, 1000);
       });
-      // 텍스트 영역 클릭이 드래그로 이어지지 않게
       ta.addEventListener('mousedown', e => { if (editingId === el.id) e.stopPropagation(); });
 
       body.appendChild(ta);
       div.appendChild(body);
-
     } else if (el.type === 'image') {
       const body = document.createElement('div');
       body.className = 'el-img-body';
@@ -436,6 +532,13 @@
       div.appendChild(body);
     }
 
+    // 중요 배지
+    const badge = document.createElement('div');
+    badge.className = 'important-badge';
+    badge.textContent = '★';
+    div.appendChild(badge);
+
+    // 리사이즈 핸들
     const handle = document.createElement('div');
     handle.className = 'resize-handle';
     handle.dataset.resize = 'true';
@@ -454,6 +557,7 @@
     node.style.width  = el.w + 'px';
     node.style.height = el.h + 'px';
     node.classList.toggle('selected', selected === el.id);
+    node.classList.toggle('important-flag', !!el.important);
 
     const header = node.querySelector('.el-header');
     if (header) header.style.background = p.color;
@@ -461,7 +565,9 @@
     const body = node.querySelector('.el-body');
     if (body) body.style.background = p.light;
 
-    // 편집 중이 아닐 때만 텍스트 동기화
+    const starBtn = node.querySelector('.star-btn');
+    if (starBtn) starBtn.className = 'star-btn' + (el.important ? ' starred' : '');
+
     if (el.type === 'sticky' && editingId !== el.id) {
       const ta = node.querySelector('.el-text');
       if (ta && ta.value !== (el.content || '')) ta.value = el.content || '';
@@ -472,14 +578,12 @@
   viewportEl.addEventListener('mousedown', e => {
     if (e.button !== 0) return;
 
-    // 편집 중 클릭 처리
     if (editingId) {
       const node = nodeMap.get(editingId);
-      if (node?.contains(e.target)) return; // 편집 중인 요소 내부는 패스
+      if (node?.contains(e.target)) return;
       stopEditing();
     }
 
-    // 리사이즈 핸들
     if (e.target.dataset.resize) {
       const elDiv = e.target.closest('.el');
       const id = elDiv?.dataset.id;
@@ -491,19 +595,17 @@
       return;
     }
 
-    // 요소 위 클릭
     const elDiv = e.target.closest('.el');
     if (elDiv) {
       const id = elDiv.dataset.id;
       const el = elements.find(x => x.id === id);
       if (!el) return;
       selectEl(id);
-      action = { type: 'move', id, sx: e.clientX, sy: e.clientY, ex: el.x, ey: el.y };
+      action = { type: 'move', id, sx: e.clientX, sy: e.clientY, ex: el.x, ey: el.y, moved: false };
       e.preventDefault();
       return;
     }
 
-    // 빈 캔버스 — 팬
     selectEl(null);
     action = { type: 'pan', sx: e.clientX, sy: e.clientY, vx: vp.x, vy: vp.y };
   });
@@ -521,6 +623,7 @@
     } else if (action.type === 'move') {
       const el = elements.find(x => x.id === action.id);
       if (!el) return;
+      if (Math.abs(dx) > 3 || Math.abs(dy) > 3) action.moved = true;
       el.x = action.ex + dx / vp.zoom;
       el.y = action.ey + dy / vp.zoom;
       syncStyle(el);
@@ -536,9 +639,13 @@
     }
   });
 
-  document.addEventListener('mouseup', () => { action = null; });
+  document.addEventListener('mouseup', () => {
+    if (action?.type === 'move' && action.moved) snapshot();
+    if (action?.type === 'resize') snapshot();
+    action = null;
+  });
 
-  // 더블클릭: 스티커 생성 or 텍스트 편집
+  // 더블클릭
   viewportEl.addEventListener('dblclick', e => {
     const sticky = e.target.closest('.el-sticky');
     if (sticky) { startEditing(sticky.dataset.id); return; }
@@ -547,7 +654,7 @@
     addSticky(pos.x, pos.y);
   });
 
-  // 스크롤 줌
+  // 줌
   viewportEl.addEventListener('wheel', e => {
     e.preventDefault();
     const factor = e.deltaY > 0 ? 0.92 : 1.08;
@@ -563,16 +670,24 @@
 
   // 키보드
   document.addEventListener('keydown', e => {
+    // Ctrl+Z
+    if (e.key === 'z' && (e.ctrlKey || e.metaKey) && !e.shiftKey) {
+      e.preventDefault(); undo(); return;
+    }
+    // Ctrl+Shift+Z
+    if (e.key === 'z' && (e.ctrlKey || e.metaKey) && e.shiftKey) {
+      e.preventDefault(); redo(); return;
+    }
+    // Ctrl+Y (Windows 스타일 redo)
+    if (e.key === 'y' && (e.ctrlKey || e.metaKey)) {
+      e.preventDefault(); redo(); return;
+    }
     if (editingId) return;
     if ((e.key === 'Delete' || e.key === 'Backspace') && selected) {
-      e.preventDefault();
-      deleteSelected();
+      e.preventDefault(); deleteSelected();
     }
-    // Ctrl+0: 뷰 초기화
     if (e.key === '0' && (e.ctrlKey || e.metaKey)) {
-      e.preventDefault();
-      vp = { x: 0, y: 0, zoom: 1 };
-      updateTransform();
+      e.preventDefault(); vp = { x: 0, y: 0, zoom: 1 }; updateTransform();
     }
   });
 
@@ -624,6 +739,7 @@
 
   // ── 초기화 ───────────────────────────────────────────
   updateTransform();
+  updateUndoRedoButtons();
   const savedUser = sessionStorage.getItem('notepad-user');
   if (savedUser) { currentUser = savedUser; showApp(); }
 </script>
