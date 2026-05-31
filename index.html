@@ -359,6 +359,7 @@
     <div class="sep"></div>
     <button class="tool-btn" id="btn-undo" onclick="undo()" title="실행취소 (Ctrl+Z)">↩ 취소</button>
     <button class="tool-btn" id="btn-redo" onclick="redo()" title="다시실행 (Ctrl+Shift+Z)">↪ 다시</button>
+    <button class="tool-btn" onclick="resetView()" title="화면 중앙으로 (Ctrl+0)">⌖ 중앙으로</button>
     <button class="tool-btn" id="btn-filter-star" onclick="toggleStarFilter()" title="중요 메모만 보기">☆ 중요만 보기</button>
     <button class="tool-btn" onclick="addSticky()">✏️ 메모 추가</button>
     <button class="tool-btn" onclick="document.getElementById('file-input').click()">🖼 사진 추가</button>
@@ -442,6 +443,29 @@
 
   window.undo = undo;
   window.redo = redo;
+
+  window.resetView = function() {
+    if (elements.length === 0) {
+      vp = { x: 0, y: 0, zoom: 1 };
+      updateTransform();
+      return;
+    }
+    // 전체 메모의 바운딩 박스 계산
+    let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+    for (const el of elements) {
+      minX = Math.min(minX, el.x); minY = Math.min(minY, el.y);
+      maxX = Math.max(maxX, el.x + el.w); maxY = Math.max(maxY, el.y + el.h);
+    }
+    const r = viewportEl.getBoundingClientRect();
+    const pad = 60;
+    const scaleX = (r.width  - pad * 2) / (maxX - minX || 1);
+    const scaleY = (r.height - pad * 2) / (maxY - minY || 1);
+    const zoom = Math.min(1, scaleX, scaleY);
+    vp.zoom = zoom;
+    vp.x = r.width  / 2 - (minX + (maxX - minX) / 2) * zoom;
+    vp.y = r.height / 2 - (minY + (maxY - minY) / 2) * zoom;
+    updateTransform();
+  };
 
   // ── 프로필 / 로그인 ───────────────────────────────────
   window.selectProfile = function(name) {
@@ -980,7 +1004,7 @@
       e.preventDefault(); deleteSelected();
     }
     if (e.key === '0' && (e.ctrlKey || e.metaKey)) {
-      e.preventDefault(); vp = { x: 0, y: 0, zoom: 1 }; updateTransform();
+      e.preventDefault(); resetView();
     }
     // Ctrl+A: 전체 선택
     if (e.key === 'a' && (e.ctrlKey || e.metaKey) && !editingId) {
