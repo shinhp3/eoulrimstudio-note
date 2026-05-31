@@ -176,6 +176,65 @@
     }
 
     #file-input { display: none; }
+
+    /* ── 공주 프로필 카드 ── */
+    .princess-card {
+      background: linear-gradient(135deg, #fff0f6 0%, #fce4ec 100%);
+      border-color: #f8bbd0 !important;
+    }
+    .princess-card:hover { border-color: #e91e8c !important; box-shadow: 0 8px 24px rgba(233,30,140,0.18) !important; }
+
+    /* ── 공주 메모 헤더 — 그라데이션 + 반짝이 ── */
+    .princess-header {
+      background: linear-gradient(90deg, #e91e8c 0%, #f06292 60%, #ce93d8 100%) !important;
+      position: relative; overflow: hidden;
+    }
+    .princess-header::before {
+      content: '✨💖✨';
+      position: absolute; right: 40px; top: 50%; transform: translateY(-50%);
+      font-size: 11px; opacity: 0.7; pointer-events: none;
+      animation: sparkle 2.5s ease-in-out infinite;
+    }
+    @keyframes sparkle { 0%,100%{opacity:.5;transform:translateY(-50%) scale(1)} 50%{opacity:1;transform:translateY(-55%) scale(1.1)} }
+
+    /* ── 공주 메모 바디 ── */
+    .princess-body {
+      background: linear-gradient(160deg, #fff0f8 0%, #fce4ec 100%) !important;
+      position: relative;
+    }
+    .princess-body::after {
+      content: '';
+      position: absolute; inset: 0; border-radius: 0 0 8px 8px;
+      background-image:
+        radial-gradient(circle, rgba(233,30,140,0.08) 1px, transparent 1px),
+        radial-gradient(circle, rgba(206,147,216,0.07) 1px, transparent 1px);
+      background-size: 18px 18px, 26px 26px;
+      background-position: 0 0, 9px 9px;
+      pointer-events: none;
+    }
+
+    /* ── 공주 푸터 ── */
+    .princess-footer {
+      background: linear-gradient(90deg, #fce4ec, #f8bbd0) !important;
+      color: #c2185b !important;
+    }
+    .princess-footer::before { content: '🌸 '; }
+
+    /* ── 공주 리본 장식 ── */
+    .princess-ribbon {
+      position: absolute; top: -8px; left: 12px;
+      font-size: 18px; line-height: 1; pointer-events: none;
+      animation: floatRibbon 3s ease-in-out infinite;
+    }
+    @keyframes floatRibbon { 0%,100%{transform:translateY(0) rotate(-5deg)} 50%{transform:translateY(-3px) rotate(5deg)} }
+
+    /* ── 공주 메모 테두리 효과 ── */
+    .el-princess {
+      box-shadow: 0 2px 16px rgba(233,30,140,0.15), 0 0 0 1.5px rgba(233,30,140,0.25) !important;
+    }
+    .el-princess:hover {
+      box-shadow: 0 6px 28px rgba(233,30,140,0.25), 0 0 0 2px rgba(233,30,140,0.4) !important;
+    }
   </style>
 </head>
 <body>
@@ -193,9 +252,9 @@
       <div class="profile-avatar" style="background:#fff7ed;">🦊</div>
       <div class="profile-name" style="color:#f97316;">밀양장석현</div>
     </div>
-    <div class="profile-card" onclick="selectProfile('에겐현진')">
-      <div class="profile-avatar" style="background:#ecfdf5;">🐱</div>
-      <div class="profile-name" style="color:#10b981;">에겐현진</div>
+    <div class="profile-card princess-card" onclick="selectProfile('에겐현진')">
+      <div class="profile-avatar" style="background:#fff0f6;">👑</div>
+      <div class="profile-name" style="color:#e91e8c;">에겐현진</div>
     </div>
   </div>
 </div>
@@ -232,7 +291,7 @@
   const PROFILES = {
     '신효범':    { color: '#6366f1', light: '#eef2ff', emoji: '🐻' },
     '밀양장석현': { color: '#f97316', light: '#fff7ed', emoji: '🦊' },
-    '에겐현진':  { color: '#10b981', light: '#ecfdf5', emoji: '🐱' },
+    '에겐현진':  { color: '#e91e8c', light: '#fff0f6', emoji: '👑', princess: true },
   };
   function prof(name) { return PROFILES[name] || { color: '#888', light: '#f5f5f5', emoji: '👤' }; }
 
@@ -508,18 +567,26 @@
 
   function buildNode(el) {
     const p = prof(el.author);
+    const isPrincess = !!p.princess;
     const div = document.createElement('div');
-    div.className = `el el-${el.type}`;
+    div.className = `el el-${el.type}` + (isPrincess ? ' el-princess' : '');
     div.dataset.id = el.id;
 
     const header = document.createElement('div');
-    header.className = 'el-header';
-    header.style.background = p.color;
+    header.className = 'el-header' + (isPrincess ? ' princess-header' : '');
+    if (!isPrincess) header.style.background = p.color;
 
     const authorLabel = document.createElement('span');
     authorLabel.className = 'el-author-label';
     authorLabel.textContent = `${p.emoji} ${el.author}`;
     header.appendChild(authorLabel);
+
+    if (isPrincess) {
+      const ribbon = document.createElement('span');
+      ribbon.className = 'princess-ribbon';
+      ribbon.textContent = '🎀';
+      div.appendChild(ribbon);
+    }
 
     const starBtn = document.createElement('button');
     starBtn.className = 'star-btn' + (el.important ? ' starred' : '');
@@ -533,8 +600,8 @@
 
     if (el.type === 'sticky') {
       const body = document.createElement('div');
-      body.className = 'el-body';
-      body.style.background = p.light;
+      body.className = 'el-body' + (isPrincess ? ' princess-body' : '');
+      if (!isPrincess) body.style.background = p.light;
       const ta = document.createElement('textarea');
       ta.className = 'el-text';
       ta.placeholder = '메모를 입력하세요...';
@@ -558,7 +625,7 @@
     }
 
     const footer = document.createElement('div');
-    footer.className = 'el-footer';
+    footer.className = 'el-footer' + (isPrincess ? ' princess-footer' : '');
     footer.textContent = formatDate(el.updatedAt);
     div.appendChild(footer);
 
@@ -583,10 +650,11 @@
     node.style.width = el.w + 'px'; node.style.height = el.h + 'px';
     node.classList.toggle('selected', selected.has(el.id));
     node.classList.toggle('important-flag', !!el.important);
+    const isPrincess = !!p.princess;
     const header = node.querySelector('.el-header');
-    if (header) header.style.background = p.color;
+    if (header && !isPrincess) header.style.background = p.color;
     const body = node.querySelector('.el-body');
-    if (body) body.style.background = p.light;
+    if (body && !isPrincess) body.style.background = p.light;
     const starBtn = node.querySelector('.star-btn');
     if (starBtn) starBtn.className = 'star-btn' + (el.important ? ' starred' : '');
     if (el.type === 'sticky' && editingId !== el.id) {
@@ -596,7 +664,7 @@
     const footer = node.querySelector('.el-footer');
     if (footer) {
       footer.textContent = formatDate(el.updatedAt);
-      footer.style.background = p.light;
+      if (!isPrincess) footer.style.background = p.light;
     }
   }
 
