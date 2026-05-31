@@ -60,6 +60,7 @@
     }
     .tool-btn:hover { background: #f5f5f5; border-color: #ccc; color: #222; }
     .tool-btn:disabled { opacity: 0.35; cursor: not-allowed; }
+    .tool-btn.active { background: #fff8e1; border-color: #f39c12; color: #b7700a; font-weight: 700; }
     .user-pill { padding: 5px 14px; border-radius: 20px; font-size: 13px; font-weight: 600; color: white; }
     .logout-btn {
       background: none; border: 1px solid #e0e0e0; padding: 5px 12px;
@@ -342,6 +343,7 @@
     <div class="sep"></div>
     <button class="tool-btn" id="btn-undo" onclick="undo()" title="실행취소 (Ctrl+Z)">↩ 취소</button>
     <button class="tool-btn" id="btn-redo" onclick="redo()" title="다시실행 (Ctrl+Shift+Z)">↪ 다시</button>
+    <button class="tool-btn" id="btn-filter-star" onclick="toggleStarFilter()" title="중요 메모만 보기">☆ 중요만 보기</button>
     <button class="tool-btn" onclick="addSticky()">✏️ 메모 추가</button>
     <button class="tool-btn" onclick="document.getElementById('file-input').click()">🖼 사진 추가</button>
     <div class="user-pill" id="user-pill"></div>
@@ -377,6 +379,7 @@
   let isDirty = false;
   let action = null;
   let spaceDown = false;
+  let starFilterOn = false;
 
   // Undo/Redo
   let history = [];
@@ -638,7 +641,24 @@
       if (!nodeMap.has(el.id)) { const node = buildNode(el); canvasEl.appendChild(node); nodeMap.set(el.id, node); }
       syncStyle(el);
     }
+    applyStarFilter();
   }
+
+  function applyStarFilter() {
+    for (const el of elements) {
+      const node = nodeMap.get(el.id);
+      if (!node) continue;
+      node.style.display = (starFilterOn && !el.important) ? 'none' : 'flex';
+    }
+  }
+
+  window.toggleStarFilter = function() {
+    starFilterOn = !starFilterOn;
+    const btn = document.getElementById('btn-filter-star');
+    btn.classList.toggle('active', starFilterOn);
+    btn.textContent = starFilterOn ? '★ 중요만 보기' : '☆ 중요만 보기';
+    applyStarFilter();
+  };
 
   function buildNode(el) {
     const p = prof(el.author);
