@@ -196,37 +196,34 @@
 
     /* ── 국밥 메모 헤더 ── */
     .gukbap-header {
-      background: linear-gradient(90deg, #bf6000 0%, #e65100 55%, #bf360c 100%) !important;
+      background: linear-gradient(90deg, #c8680a 0%, #e8893a 100%) !important;
       position: relative; overflow: hidden;
     }
     .gukbap-header::before {
-      content: '🍎대추🏺';
+      content: '🍎🏺';
       position: absolute; right: 38px; top: 50%; transform: translateY(-50%);
-      font-size: 10px; opacity: 0.75; pointer-events: none; letter-spacing: 1px;
+      font-size: 11px; opacity: 0.55; pointer-events: none;
       animation: steamRise 2.8s ease-in-out infinite;
     }
-    @keyframes steamRise { 0%,100%{opacity:.6;transform:translateY(-50%)} 50%{opacity:1;transform:translateY(-56%)} }
+    @keyframes steamRise { 0%,100%{opacity:.4;transform:translateY(-50%)} 50%{opacity:.75;transform:translateY(-56%)} }
 
     /* ── 국밥 메모 바디 ── */
     .gukbap-body {
-      background: linear-gradient(160deg, #fff8f0 0%, #fff3e0 100%) !important;
+      background: #fffaf4 !important;
       position: relative;
     }
     .gukbap-body::after {
       content: '';
       position: absolute; inset: 0; border-radius: 0 0 8px 8px;
-      background-image:
-        radial-gradient(ellipse 4px 6px at center, rgba(191,96,0,0.12) 60%, transparent 100%),
-        radial-gradient(circle 3px at center, rgba(230,81,0,0.1) 60%, transparent 100%);
-      background-size: 22px 22px, 33px 33px;
-      background-position: 0 0, 11px 11px;
+      background-image: radial-gradient(circle, rgba(191,96,0,0.06) 1px, transparent 1px);
+      background-size: 22px 22px;
       pointer-events: none;
     }
 
     /* ── 국밥 푸터 ── */
     .gukbap-footer {
-      background: linear-gradient(90deg, #ffe0b2, #ffcc80) !important;
-      color: #7f3700 !important; opacity: 1 !important;
+      background: #fff0dc !important;
+      color: #8a4500 !important; opacity: 1 !important;
     }
     .gukbap-footer::before { content: '🏺 '; }
 
@@ -261,38 +258,35 @@
     }
     .princess-card:hover { border-color: #e91e8c !important; box-shadow: 0 8px 24px rgba(233,30,140,0.18) !important; }
 
-    /* ── 공주 메모 헤더 — 그라데이션 + 반짝이 ── */
+    /* ── 공주 메모 헤더 ── */
     .princess-header {
-      background: linear-gradient(90deg, #e91e8c 0%, #f06292 60%, #ce93d8 100%) !important;
+      background: linear-gradient(90deg, #e91e8c 0%, #f48fb1 100%) !important;
       position: relative; overflow: hidden;
     }
     .princess-header::before {
-      content: '✨💖✨';
+      content: '✨💖';
       position: absolute; right: 40px; top: 50%; transform: translateY(-50%);
-      font-size: 11px; opacity: 0.7; pointer-events: none;
+      font-size: 11px; opacity: 0.55; pointer-events: none;
       animation: sparkle 2.5s ease-in-out infinite;
     }
-    @keyframes sparkle { 0%,100%{opacity:.5;transform:translateY(-50%) scale(1)} 50%{opacity:1;transform:translateY(-55%) scale(1.1)} }
+    @keyframes sparkle { 0%,100%{opacity:.4;transform:translateY(-50%) scale(1)} 50%{opacity:.75;transform:translateY(-55%) scale(1.1)} }
 
     /* ── 공주 메모 바디 ── */
     .princess-body {
-      background: linear-gradient(160deg, #fff0f8 0%, #fce4ec 100%) !important;
+      background: #fff5f9 !important;
       position: relative;
     }
     .princess-body::after {
       content: '';
       position: absolute; inset: 0; border-radius: 0 0 8px 8px;
-      background-image:
-        radial-gradient(circle, rgba(233,30,140,0.08) 1px, transparent 1px),
-        radial-gradient(circle, rgba(206,147,216,0.07) 1px, transparent 1px);
-      background-size: 18px 18px, 26px 26px;
-      background-position: 0 0, 9px 9px;
+      background-image: radial-gradient(circle, rgba(233,30,140,0.05) 1px, transparent 1px);
+      background-size: 20px 20px;
       pointer-events: none;
     }
 
     /* ── 공주 푸터 ── */
     .princess-footer {
-      background: linear-gradient(90deg, #fce4ec, #f8bbd0) !important;
+      background: #ffe4ef !important;
       color: #c2185b !important;
     }
     .princess-footer::before { content: '🌸 '; }
@@ -905,11 +899,11 @@
       selBox.style.left = x1 + 'px'; selBox.style.top = y1 + 'px';
       selBox.style.width = (x2 - x1) + 'px'; selBox.style.height = (y2 - y1) + 'px';
 
-      // 마퀴와 겹치는 요소 선택
+      // 마퀴에 완전히 포함된 요소만 선택 (Figma 방식)
       const c1 = vpRelToCanvas(x1, y1);
       const c2 = vpRelToCanvas(x2, y2);
       for (const el of elements) {
-        const hit = c1.x < el.x + el.w && c2.x > el.x && c1.y < el.y + el.h && c2.y > el.y;
+        const hit = c1.x <= el.x && c2.x >= el.x + el.w && c1.y <= el.y && c2.y >= el.y + el.h;
         if (hit) selected.add(el.id); else selected.delete(el.id);
       }
       updateSelectionVisuals();
