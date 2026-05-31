@@ -31,22 +31,9 @@
       text-align: center;
     }
 
-    .login-card .logo {
-      font-size: 48px;
-      margin-bottom: 16px;
-    }
-
-    .login-card h1 {
-      font-size: 22px;
-      color: #1a1a2e;
-      margin-bottom: 6px;
-    }
-
-    .login-card p {
-      color: #888;
-      font-size: 14px;
-      margin-bottom: 32px;
-    }
+    .login-card .logo { font-size: 48px; margin-bottom: 16px; }
+    .login-card h1 { font-size: 22px; color: #1a1a2e; margin-bottom: 6px; }
+    .login-card p { color: #888; font-size: 14px; margin-bottom: 32px; }
 
     .login-card input {
       width: 100%;
@@ -58,7 +45,6 @@
       transition: border-color 0.2s;
       outline: none;
     }
-
     .login-card input:focus { border-color: #667eea; }
 
     .login-card button {
@@ -73,7 +59,6 @@
       cursor: pointer;
       transition: opacity 0.2s;
     }
-
     .login-card button:hover { opacity: 0.9; }
 
     .login-error {
@@ -100,49 +85,37 @@
       box-shadow: 0 2px 8px rgba(0,0,0,0.06);
     }
 
-    .header-left {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-    }
-
+    .header-left { display: flex; align-items: center; gap: 12px; }
     .header-logo { font-size: 24px; }
+    header h1 { font-size: 17px; color: #1a1a2e; font-weight: 700; }
 
-    header h1 {
-      font-size: 17px;
-      color: #1a1a2e;
-      font-weight: 700;
-    }
-
-    .online-indicator {
+    .sync-indicator {
       display: flex;
       align-items: center;
       gap: 6px;
       font-size: 12px;
-      color: #27ae60;
-      background: #eafaf1;
       padding: 4px 10px;
       border-radius: 20px;
+      transition: all 0.3s;
     }
+    .sync-indicator.synced { color: #27ae60; background: #eafaf1; }
+    .sync-indicator.syncing { color: #e67e22; background: #fff9f0; }
+    .sync-indicator.error { color: #e74c3c; background: #fff0f0; }
 
-    .online-dot {
+    .sync-dot {
       width: 7px;
       height: 7px;
-      background: #27ae60;
       border-radius: 50%;
-      animation: pulse 2s infinite;
+      background: currentColor;
     }
+    .sync-indicator.synced .sync-dot { animation: pulse 2s infinite; }
 
     @keyframes pulse {
       0%, 100% { opacity: 1; }
-      50% { opacity: 0.4; }
+      50% { opacity: 0.3; }
     }
 
-    .header-right {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-    }
+    .header-right { display: flex; align-items: center; gap: 12px; }
 
     .user-badge {
       background: #f0f2f5;
@@ -163,7 +136,6 @@
       cursor: pointer;
       transition: all 0.2s;
     }
-
     .logout-btn:hover { border-color: #999; color: #555; }
 
     /* 레이아웃 */
@@ -213,7 +185,6 @@
       transition: opacity 0.2s;
       line-height: 1;
     }
-
     .add-note-btn:hover { opacity: 0.85; }
 
     .notes-list {
@@ -230,7 +201,6 @@
       margin-bottom: 2px;
       border: 2px solid transparent;
     }
-
     .note-item:hover { background: #f7f8fa; }
     .note-item.active { background: #f0f0ff; border-color: #667eea22; }
 
@@ -259,10 +229,7 @@
       margin-top: 6px;
     }
 
-    .note-item-time {
-      font-size: 11px;
-      color: #ccc;
-    }
+    .note-item-time { font-size: 11px; color: #ccc; }
 
     .note-item-author {
       font-size: 11px;
@@ -272,7 +239,7 @@
       border-radius: 10px;
     }
 
-    /* 메인 에디터 */
+    /* 에디터 */
     .editor-area {
       flex: 1;
       display: flex;
@@ -299,19 +266,11 @@
       flex: 1;
       background: transparent;
     }
-
     #note-title-input::placeholder { color: #ccc; }
 
-    .editor-actions {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
+    .editor-actions { display: flex; align-items: center; gap: 8px; }
 
-    .save-status {
-      font-size: 12px;
-      color: #aaa;
-    }
+    .save-status { font-size: 12px; color: #aaa; }
 
     .delete-btn {
       padding: 6px 14px;
@@ -323,7 +282,6 @@
       cursor: pointer;
       transition: all 0.2s;
     }
-
     .delete-btn:hover { background: #fff0f0; }
 
     #note-content {
@@ -338,7 +296,6 @@
       background: #fafafa;
       font-family: inherit;
     }
-
     #note-content::placeholder { color: #ddd; }
 
     .empty-state {
@@ -350,29 +307,12 @@
       color: #ccc;
       gap: 12px;
     }
-
     .empty-state .icon { font-size: 64px; }
     .empty-state p { font-size: 15px; }
 
-    /* 실시간 편집 중 표시 */
-    .editing-badge {
-      font-size: 12px;
-      color: #e67e22;
-      background: #fff9f0;
-      padding: 3px 10px;
-      border-radius: 10px;
-      border: 1px solid #ffe0b0;
-    }
-
-    /* 스크롤바 */
     ::-webkit-scrollbar { width: 4px; }
     ::-webkit-scrollbar-track { background: transparent; }
     ::-webkit-scrollbar-thumb { background: #ddd; border-radius: 4px; }
-
-    /* 반응형 */
-    @media (max-width: 600px) {
-      .sidebar { width: 200px; }
-    }
   </style>
 </head>
 <body>
@@ -386,7 +326,7 @@
     <input type="text" id="login-name" placeholder="이름 (예: 홍길동)" maxlength="10" />
     <input type="password" id="login-password" placeholder="팀 비밀번호" />
     <button onclick="login()">입장하기</button>
-    <div class="login-error" id="login-error">비밀번호가 틀렸습니다.</div>
+    <div class="login-error" id="login-error"></div>
   </div>
 </div>
 
@@ -396,9 +336,9 @@
     <div class="header-left">
       <span class="header-logo">📝</span>
       <h1>어울림스튜디오 메모장</h1>
-      <div class="online-indicator">
-        <div class="online-dot"></div>
-        <span id="online-text">연결 중...</span>
+      <div class="sync-indicator synced" id="sync-indicator">
+        <div class="sync-dot"></div>
+        <span id="sync-text">동기화됨</span>
       </div>
     </div>
     <div class="header-right">
@@ -416,7 +356,7 @@
       <div class="notes-list" id="notes-list"></div>
     </div>
 
-    <div class="editor-area" id="editor-area">
+    <div class="editor-area">
       <div class="empty-state" id="empty-state">
         <div class="icon">📄</div>
         <p>왼쪽에서 메모를 선택하거나 새로 만드세요</p>
@@ -426,129 +366,138 @@
         <div class="editor-toolbar">
           <input type="text" id="note-title-input" placeholder="제목을 입력하세요" />
           <div class="editor-actions">
-            <span class="editing-badge" id="editing-badge" style="display:none"></span>
-            <span class="save-status" id="save-status">저장됨</span>
+            <span class="save-status" id="save-status"></span>
             <button class="delete-btn" onclick="deleteNote()">삭제</button>
           </div>
         </div>
-        <textarea id="note-content" placeholder="여기에 메모를 작성하세요...&#10;&#10;팀원들과 실시간으로 공유됩니다 ✨"></textarea>
+        <textarea id="note-content" placeholder="여기에 메모를 작성하세요...&#10;&#10;팀원들과 약 4초마다 자동 동기화됩니다 ✨"></textarea>
       </div>
     </div>
   </div>
 </div>
 
-<!-- Firebase SDK -->
-<script type="module">
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-  import { getDatabase, ref, set, onValue, push, remove, serverTimestamp, onDisconnect }
-    from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
-
-  // ⚠️ Firebase 설정 - 아래 값을 본인의 Firebase 프로젝트 설정으로 교체하세요
-  const firebaseConfig = {
-    apiKey: "YOUR_API_KEY",
-    authDomain: "YOUR_PROJECT.firebaseapp.com",
-    databaseURL: "https://YOUR_PROJECT-default-rtdb.firebaseio.com",
-    projectId: "YOUR_PROJECT_ID",
-    storageBucket: "YOUR_PROJECT.appspot.com",
-    messagingSenderId: "YOUR_SENDER_ID",
-    appId: "YOUR_APP_ID"
-  };
-
-  // 팀 비밀번호 (원하는 값으로 변경하세요)
-  const TEAM_PASSWORD = "eoulrim2024";
-
-  const app = initializeApp(firebaseConfig);
-  const db = getDatabase(app);
+<script>
+  // ⚠️ Cloudflare Worker URL - 배포 후 교체하세요
+  const WORKER_URL = "https://eoulrimstudio-note-api.YOUR_SUBDOMAIN.workers.dev";
 
   let currentUser = null;
+  let password = null;
   let currentNoteId = null;
   let notes = {};
   let saveTimer = null;
-  let isRemoteUpdate = false;
+  let pollTimer = null;
+  let isDirty = false;
+
+  // ─── API 호출 ───
+  async function api(method, path, body) {
+    const res = await fetch(WORKER_URL + path, {
+      method,
+      headers: {
+        "Content-Type": "application/json",
+        "X-Password": password,
+      },
+      body: body ? JSON.stringify(body) : undefined,
+    });
+    if (!res.ok) throw new Error(await res.text());
+    return res.json();
+  }
 
   // ─── 로그인 ───
-  window.login = function() {
-    const name = document.getElementById('login-name').value.trim();
-    const pw = document.getElementById('login-password').value;
-    const errEl = document.getElementById('login-error');
+  window.login = async function () {
+    const name = document.getElementById("login-name").value.trim();
+    const pw = document.getElementById("login-password").value;
+    const errEl = document.getElementById("login-error");
+    errEl.style.display = "none";
 
-    if (!name) { errEl.style.display = 'block'; errEl.textContent = '이름을 입력해주세요.'; return; }
-    if (pw !== TEAM_PASSWORD) { errEl.style.display = 'block'; errEl.textContent = '비밀번호가 틀렸습니다.'; return; }
+    if (!name) { showError("이름을 입력해주세요."); return; }
+    if (!pw) { showError("비밀번호를 입력해주세요."); return; }
 
-    currentUser = name;
-    sessionStorage.setItem('notepad-user', name);
-    showApp();
+    password = pw;
+
+    try {
+      await api("GET", "/api/notes"); // 인증 테스트
+      currentUser = name;
+      sessionStorage.setItem("notepad-user", name);
+      sessionStorage.setItem("notepad-pw", pw);
+      showApp();
+    } catch {
+      showError("비밀번호가 틀렸거나 서버에 연결할 수 없습니다.");
+      password = null;
+    }
   };
 
-  window.logout = function() {
-    sessionStorage.removeItem('notepad-user');
+  function showError(msg) {
+    const el = document.getElementById("login-error");
+    el.textContent = msg;
+    el.style.display = "block";
+  }
+
+  window.logout = function () {
+    sessionStorage.clear();
+    clearInterval(pollTimer);
     currentUser = null;
+    password = null;
     currentNoteId = null;
-    document.getElementById('app').style.display = 'none';
-    document.getElementById('login-screen').style.display = 'flex';
+    document.getElementById("app").style.display = "none";
+    document.getElementById("login-screen").style.display = "flex";
   };
 
   function showApp() {
-    document.getElementById('login-screen').style.display = 'none';
-    document.getElementById('app').style.display = 'block';
-    document.getElementById('user-name-display').textContent = currentUser;
-    initNotes();
+    document.getElementById("login-screen").style.display = "none";
+    document.getElementById("app").style.display = "block";
+    document.getElementById("user-name-display").textContent = currentUser;
+    fetchNotes();
+    pollTimer = setInterval(fetchNotes, 4000);
   }
 
   // ─── 자동 로그인 복원 ───
-  const savedUser = sessionStorage.getItem('notepad-user');
-  if (savedUser) { currentUser = savedUser; showApp(); }
+  const savedUser = sessionStorage.getItem("notepad-user");
+  const savedPw = sessionStorage.getItem("notepad-pw");
+  if (savedUser && savedPw) {
+    currentUser = savedUser;
+    password = savedPw;
+    showApp();
+  }
 
-  // ─── 엔터키로 로그인 ───
-  document.getElementById('login-password').addEventListener('keydown', e => {
-    if (e.key === 'Enter') window.login();
+  document.getElementById("login-password").addEventListener("keydown", e => {
+    if (e.key === "Enter") window.login();
   });
 
-  // ─── Firebase 초기화 ───
-  function initNotes() {
-    const notesRef = ref(db, 'notes');
-    onValue(notesRef, snapshot => {
-      notes = snapshot.val() || {};
+  // ─── 메모 목록 가져오기 ───
+  async function fetchNotes() {
+    setSyncStatus("syncing", "동기화 중...");
+    try {
+      const data = await api("GET", "/api/notes");
+      const prevNotes = notes;
+      notes = data;
       renderNotesList();
 
-      if (currentNoteId && notes[currentNoteId]) {
-        const note = notes[currentNoteId];
-        // 다른 사람이 편집 중이면 내용 반영
-        if (note.editingBy && note.editingBy !== currentUser) {
-          isRemoteUpdate = true;
-          document.getElementById('note-title-input').value = note.title || '';
-          document.getElementById('note-content').value = note.content || '';
-          isRemoteUpdate = false;
-          showEditingBadge(note.editingBy);
-        } else if (!note.editingBy) {
-          isRemoteUpdate = true;
-          document.getElementById('note-title-input').value = note.title || '';
-          document.getElementById('note-content').value = note.content || '';
-          isRemoteUpdate = false;
-          document.getElementById('editing-badge').style.display = 'none';
-        }
+      // 현재 편집 중인 메모 내용 갱신 (내가 편집 중이 아닐 때만)
+      if (currentNoteId && notes[currentNoteId] && !isDirty) {
+        const remote = notes[currentNoteId];
+        const titleEl = document.getElementById("note-title-input");
+        const contentEl = document.getElementById("note-content");
+        if (titleEl.value !== (remote.title || "")) titleEl.value = remote.title || "";
+        if (contentEl.value !== (remote.content || "")) contentEl.value = remote.content || "";
       }
-    });
 
-    // 연결 상태
-    const connRef = ref(db, '.info/connected');
-    onValue(connRef, snap => {
-      const onlineText = document.getElementById('online-text');
-      if (snap.val()) {
-        onlineText.textContent = '실시간 연결됨';
-        document.querySelector('.online-indicator').style.color = '#27ae60';
-      } else {
-        onlineText.textContent = '연결 끊김';
-        document.querySelector('.online-indicator').style.color = '#e74c3c';
-      }
-    });
+      setSyncStatus("synced", "동기화됨");
+    } catch {
+      setSyncStatus("error", "연결 오류");
+    }
+  }
+
+  function setSyncStatus(state, text) {
+    const el = document.getElementById("sync-indicator");
+    el.className = "sync-indicator " + state;
+    document.getElementById("sync-text").textContent = text;
   }
 
   // ─── 메모 목록 렌더링 ───
   function renderNotesList() {
-    const list = document.getElementById('notes-list');
+    const list = document.getElementById("notes-list");
     const sorted = Object.entries(notes)
-      .sort(([,a],[,b]) => (b.updatedAt || 0) - (a.updatedAt || 0));
+      .sort(([, a], [, b]) => (b.updatedAt || 0) - (a.updatedAt || 0));
 
     if (sorted.length === 0) {
       list.innerHTML = '<div style="padding:20px;text-align:center;color:#ccc;font-size:13px;">메모가 없습니다<br>+ 버튼으로 추가하세요</div>';
@@ -556,142 +505,121 @@
     }
 
     list.innerHTML = sorted.map(([id, note]) => `
-      <div class="note-item ${id === currentNoteId ? 'active' : ''}" onclick="selectNote('${id}')">
-        <div class="note-item-title">${escapeHtml(note.title || '제목 없음')}</div>
-        <div class="note-item-preview">${escapeHtml((note.content || '').slice(0, 40) || '내용 없음')}</div>
+      <div class="note-item ${id === currentNoteId ? "active" : ""}" onclick="selectNote('${id}')">
+        <div class="note-item-title">${escapeHtml(note.title || "제목 없음")}</div>
+        <div class="note-item-preview">${escapeHtml((note.content || "").slice(0, 40) || "내용 없음")}</div>
         <div class="note-item-meta">
           <span class="note-item-time">${formatTime(note.updatedAt)}</span>
-          <span class="note-item-author">${escapeHtml(note.author || '')}</span>
+          <span class="note-item-author">${escapeHtml(note.author || "")}</span>
         </div>
       </div>
-    `).join('');
+    `).join("");
   }
 
   // ─── 메모 선택 ───
-  window.selectNote = function(id) {
+  window.selectNote = function (id) {
     currentNoteId = id;
+    isDirty = false;
     const note = notes[id];
     if (!note) return;
 
     renderNotesList();
-    document.getElementById('empty-state').style.display = 'none';
-    const editor = document.getElementById('editor');
-    editor.style.display = 'flex';
-
-    isRemoteUpdate = true;
-    document.getElementById('note-title-input').value = note.title || '';
-    document.getElementById('note-content').value = note.content || '';
-    isRemoteUpdate = false;
-
-    document.getElementById('save-status').textContent = '저장됨';
-
-    if (note.editingBy && note.editingBy !== currentUser) {
-      showEditingBadge(note.editingBy);
-    } else {
-      document.getElementById('editing-badge').style.display = 'none';
-    }
+    document.getElementById("empty-state").style.display = "none";
+    const editor = document.getElementById("editor");
+    editor.style.display = "flex";
+    document.getElementById("note-title-input").value = note.title || "";
+    document.getElementById("note-content").value = note.content || "";
+    document.getElementById("save-status").textContent = "";
   };
 
   // ─── 새 메모 ───
-  window.createNote = function() {
-    const notesRef = ref(db, 'notes');
-    const newRef = push(notesRef);
-    const newNote = {
-      title: '새 메모',
-      content: '',
-      author: currentUser,
-      updatedAt: Date.now(),
-      createdAt: Date.now()
-    };
-    set(newRef, newNote).then(() => {
-      selectNote(newRef.key);
+  window.createNote = async function () {
+    const id = "note_" + Date.now();
+    try {
+      const note = await api("POST", "/api/notes", {
+        id,
+        title: "새 메모",
+        content: "",
+        author: currentUser,
+      });
+      notes[id] = note;
+      renderNotesList();
+      selectNote(id);
       setTimeout(() => {
-        const titleInput = document.getElementById('note-title-input');
-        titleInput.focus();
-        titleInput.select();
-      }, 100);
-    });
+        const t = document.getElementById("note-title-input");
+        t.focus(); t.select();
+      }, 50);
+    } catch {
+      alert("메모 생성 실패. 연결을 확인해주세요.");
+    }
   };
 
   // ─── 메모 삭제 ───
-  window.deleteNote = function() {
+  window.deleteNote = async function () {
     if (!currentNoteId) return;
-    if (!confirm('이 메모를 삭제할까요?')) return;
-
-    remove(ref(db, `notes/${currentNoteId}`)).then(() => {
+    if (!confirm("이 메모를 삭제할까요?")) return;
+    try {
+      await api("DELETE", `/api/notes/${currentNoteId}`);
+      delete notes[currentNoteId];
       currentNoteId = null;
-      document.getElementById('editor').style.display = 'none';
-      document.getElementById('empty-state').style.display = 'flex';
-    });
+      isDirty = false;
+      renderNotesList();
+      document.getElementById("editor").style.display = "none";
+      document.getElementById("empty-state").style.display = "flex";
+    } catch {
+      alert("삭제 실패.");
+    }
   };
 
   // ─── 자동 저장 ───
-  function scheduleSave() {
-    if (isRemoteUpdate) return;
-    document.getElementById('save-status').textContent = '저장 중...';
-    clearTimeout(saveTimer);
-    saveTimer = setTimeout(saveNote, 800);
-  }
-
-  function saveNote() {
+  async function saveNote() {
     if (!currentNoteId) return;
-    const title = document.getElementById('note-title-input').value;
-    const content = document.getElementById('note-content').value;
-
-    set(ref(db, `notes/${currentNoteId}`), {
-      ...notes[currentNoteId],
-      title,
-      content,
-      author: currentUser,
-      updatedAt: Date.now(),
-      editingBy: null
-    }).then(() => {
-      document.getElementById('save-status').textContent = '저장됨';
-    });
+    const title = document.getElementById("note-title-input").value;
+    const content = document.getElementById("note-content").value;
+    document.getElementById("save-status").textContent = "저장 중...";
+    try {
+      const updated = await api("POST", "/api/notes", {
+        id: currentNoteId,
+        title,
+        content,
+        author: currentUser,
+      });
+      notes[currentNoteId] = updated;
+      isDirty = false;
+      document.getElementById("save-status").textContent = "저장됨 ✓";
+      renderNotesList();
+    } catch {
+      document.getElementById("save-status").textContent = "저장 실패";
+    }
   }
 
-  // ─── 편집 중 표시 ───
-  function markEditing() {
-    if (!currentNoteId || isRemoteUpdate) return;
-    set(ref(db, `notes/${currentNoteId}/editingBy`), currentUser);
+  function scheduleSave() {
+    isDirty = true;
+    document.getElementById("save-status").textContent = "입력 중...";
     clearTimeout(saveTimer);
-    saveTimer = setTimeout(saveNote, 1200);
+    saveTimer = setTimeout(saveNote, 1000);
   }
 
-  function showEditingBadge(name) {
-    const badge = document.getElementById('editing-badge');
-    badge.textContent = `${name}님 편집 중`;
-    badge.style.display = 'inline';
-  }
-
-  // ─── 입력 이벤트 ───
-  document.getElementById('note-title-input').addEventListener('input', () => {
-    markEditing();
-    scheduleSave();
-  });
-
-  document.getElementById('note-content').addEventListener('input', () => {
-    markEditing();
-    scheduleSave();
-  });
+  document.getElementById("note-title-input").addEventListener("input", scheduleSave);
+  document.getElementById("note-content").addEventListener("input", scheduleSave);
 
   // ─── 유틸 ───
   function formatTime(ts) {
-    if (!ts) return '';
+    if (!ts) return "";
     const d = new Date(ts);
     const now = new Date();
     if (d.toDateString() === now.toDateString()) {
-      return d.toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit' });
+      return d.toLocaleTimeString("ko-KR", { hour: "2-digit", minute: "2-digit" });
     }
-    return d.toLocaleDateString('ko-KR', { month: 'short', day: 'numeric' });
+    return d.toLocaleDateString("ko-KR", { month: "short", day: "numeric" });
   }
 
   function escapeHtml(str) {
     return String(str)
-      .replace(/&/g, '&amp;')
-      .replace(/</g, '&lt;')
-      .replace(/>/g, '&gt;')
-      .replace(/"/g, '&quot;');
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;");
   }
 </script>
 </body>

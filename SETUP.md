@@ -1,82 +1,94 @@
-# 어울림스튜디오 메모장 - 설정 가이드
+# 어울림스튜디오 메모장 - Cloudflare 설정 가이드
 
-## 1단계: Firebase 프로젝트 만들기
+## 구조
+- **Cloudflare Pages**: `index.html` 호스팅 (무료)
+- **Cloudflare Workers**: API 서버 역할 (무료)
+- **Cloudflare KV**: 메모 데이터 저장 (무료)
 
-1. [Firebase Console](https://console.firebase.google.com/) 접속
-2. **프로젝트 추가** 클릭
-3. 프로젝트 이름 입력 (예: `eoulrimstudio-note`)
-4. Google Analytics는 선택 사항 → **프로젝트 만들기**
+---
 
-## 2단계: Realtime Database 활성화
+## 1단계: KV 네임스페이스 만들기
 
-1. 왼쪽 메뉴 → **빌드** → **Realtime Database**
-2. **데이터베이스 만들기** 클릭
-3. 지역 선택: `asia-southeast1 (Singapore)` 권장
-4. 보안 규칙: **테스트 모드로 시작** 선택 후 **사용 설정**
+```bash
+# wrangler 설치 (없으면)
+npm install -g wrangler
 
-### 보안 규칙 수정 (중요!)
+# Cloudflare 로그인
+wrangler login
 
-Realtime Database → **규칙** 탭에서 아래로 교체:
-
-```json
-{
-  "rules": {
-    "notes": {
-      ".read": true,
-      ".write": true
-    }
-  }
-}
+# KV 네임스페이스 생성
+wrangler kv:namespace create NOTES_KV
 ```
 
-> **참고**: 비밀번호 인증은 앱 내에서 처리하므로 DB 자체는 열어둡니다.
-> 더 강화하려면 Firebase Authentication을 추가하세요.
+출력된 `id` 값을 복사해서 `wrangler.toml`의 `id` 자리에 넣으세요:
+```toml
+[[kv_namespaces]]
+binding = "NOTES_KV"
+id = "여기에_붙여넣기"
+```
 
-## 3단계: 앱 설정 가져오기
+---
 
-1. Firebase Console → **프로젝트 설정** (톱니바퀴 아이콘)
-2. **일반** 탭 → 스크롤 내려서 **내 앱** 섹션
-3. **웹 앱 추가** 클릭 → 앱 닉네임 입력
-4. 표시된 `firebaseConfig` 코드 복사
+## 2단계: 비밀번호 설정
 
-## 4단계: index.html 수정
-
-`index.html` 파일을 열고 아래 부분을 찾아 교체:
-
+`worker.js` 파일 상단:
 ```javascript
-// ⚠️ Firebase 설정 - 아래 값을 본인의 Firebase 프로젝트 설정으로 교체하세요
-const firebaseConfig = {
-  apiKey: "YOUR_API_KEY",           // ← Firebase에서 복사한 값으로
-  authDomain: "YOUR_PROJECT.firebaseapp.com",
-  databaseURL: "https://YOUR_PROJECT-default-rtdb.firebaseio.com",
-  projectId: "YOUR_PROJECT_ID",
-  storageBucket: "YOUR_PROJECT.appspot.com",
-  messagingSenderId: "YOUR_SENDER_ID",
-  appId: "YOUR_APP_ID"
-};
+const TEAM_PASSWORD = "eoulrim2024"; // ← 원하는 비밀번호로 변경
 ```
 
-팀 비밀번호도 변경하세요:
+---
+
+## 3단계: Worker 배포
+
+```bash
+wrangler deploy
+```
+
+배포 완료 후 출력되는 URL 확인:
+```
+https://eoulrimstudio-note-api.YOUR_SUBDOMAIN.workers.dev
+```
+
+---
+
+## 4단계: index.html에 Worker URL 입력
+
+`index.html` 파일에서:
 ```javascript
-const TEAM_PASSWORD = "eoulrim2024";  // ← 원하는 비밀번호로 변경
+const WORKER_URL = "https://eoulrimstudio-note-api.YOUR_SUBDOMAIN.workers.dev";
+```
+위 부분을 실제 Worker URL로 교체하세요.
+
+---
+
+## 5단계: Cloudflare Pages 배포
+
+### 방법 A - GitHub 연동 (권장)
+1. [Cloudflare Dashboard](https://dash.cloudflare.com) → **Workers & Pages**
+2. **Pages** → **Connect to Git**
+3. 이 GitHub 레포 선택
+4. Build 설정:
+   - Framework preset: `None`
+   - Build command: (비워두기)
+   - Build output directory: `/`
+5. **Save and Deploy**
+
+### 방법 B - 직접 업로드
+```bash
+# wrangler로 Pages 배포
+wrangler pages deploy . --project-name eoulrimstudio-note
 ```
 
-## 5단계: GitHub Pages 배포
-
-1. GitHub 레포지토리 → **Settings** → **Pages**
-2. Source: `Deploy from a branch`
-3. Branch: `main` / `(root)` 선택 → **Save**
-4. 약 1~2분 후 `https://[계정명].github.io/[레포명]/` 으로 접속 가능
+---
 
 ## 사용 방법
 
-- **입장**: 이름 + 팀 비밀번호 입력
-- **새 메모**: `+` 버튼 클릭
-- **편집**: 메모 클릭 후 바로 작성 (자동 저장)
-- **실시간 공유**: 다른 팀원이 편집 중이면 상단에 표시됨
-- **삭제**: 메모 선택 후 `삭제` 버튼
+- **입장**: 이름 + 팀 비밀번호
+- **새 메모**: `+` 버튼
+- **편집**: 클릭 후 작성 (1초 후 자동 저장)
+- **동기화**: 4초마다 자동으로 다른 팀원 변경사항 반영
 
-## 팀원에게 공유할 정보
+## 팀원 공유 정보
 
-- URL: `https://[계정명].github.io/[레포명]/`
-- 비밀번호: (설정한 팀 비밀번호)
+- URL: Cloudflare Pages 배포 후 나오는 주소
+- 비밀번호: 설정한 팀 비밀번호
