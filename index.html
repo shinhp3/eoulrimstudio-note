@@ -193,11 +193,11 @@
       background: linear-gradient(135deg, #e8f5e9 0%, #b2dfdb 100%);
       border-color: #80cbc4 !important;
     }
-    .gukbap-card:hover { border-color: #00897b !important; box-shadow: 0 8px 24px rgba(0,137,123,0.18) !important; }
+    .gukbap-card:hover { border-color: #4db6ac !important; box-shadow: 0 8px 24px rgba(77,182,172,0.18) !important; }
 
     /* ── 국밥 메모 헤더 ── */
     .gukbap-header {
-      background: linear-gradient(90deg, #00897b 0%, #26a69a 100%) !important;
+      background: linear-gradient(90deg, #4db6ac 0%, #80cbc4 100%) !important;
       position: relative; overflow: hidden;
     }
     .gukbap-header::before {
@@ -216,25 +216,25 @@
     .gukbap-body::after {
       content: '';
       position: absolute; inset: 0; border-radius: 0 0 8px 8px;
-      background-image: radial-gradient(circle, rgba(0,137,123,0.06) 1px, transparent 1px);
+      background-image: radial-gradient(circle, rgba(77,182,172,0.06) 1px, transparent 1px);
       background-size: 22px 22px;
       pointer-events: none;
     }
 
     /* ── 국밥 푸터 ── */
     .gukbap-footer {
-      background: #e0f2f1 !important;
-      color: #00695c !important; opacity: 1 !important;
+      background: #e8f5f4 !important;
+      color: #3d9e96 !important; opacity: 1 !important;
     }
     .gukbap-footer::before { content: '🏺 '; }
 
 
     /* ── 국밥 메모 테두리 ── */
     .el-gukbap {
-      box-shadow: 0 2px 16px rgba(0,137,123,0.15), 0 0 0 1.5px rgba(0,137,123,0.28);
+      box-shadow: 0 2px 16px rgba(77,182,172,0.15), 0 0 0 1.5px rgba(77,182,172,0.28);
     }
     .el-gukbap:hover {
-      box-shadow: 0 6px 28px rgba(0,137,123,0.25), 0 0 0 2px rgba(0,137,123,0.45);
+      box-shadow: 0 6px 28px rgba(77,182,172,0.25), 0 0 0 2px rgba(77,182,172,0.45);
     }
     .el-gukbap.important-flag {
       box-shadow: 0 2px 16px rgba(0,0,0,0.12), 0 0 0 4px #f39c12;
@@ -322,7 +322,7 @@
       <div class="profile-avatar" style="background:#e0f2f1; font-size:38px; position:relative;">🍲
         <span style="position:absolute;bottom:2px;right:2px;font-size:18px;">🏺</span>
       </div>
-      <div class="profile-name" style="color:#00897b;">밀양장석현</div>
+      <div class="profile-name" style="color:#4db6ac;">밀양장석현</div>
     </div>
     <div class="profile-card princess-card" onclick="selectProfile('에겐현진')">
       <div class="profile-avatar" style="background:#fff0f6;">👑</div>
@@ -363,7 +363,7 @@
 
   const PROFILES = {
     '신효범':    { color: '#6366f1', light: '#eef2ff', emoji: '🐶' },
-    '밀양장석현': { color: '#00897b', light: '#e0f2f1', emoji: '🍲', gukbap: true },
+    '밀양장석현': { color: '#4db6ac', light: '#e8f5f4', emoji: '🍲', gukbap: true },
     '에겐현진':  { color: '#e91e8c', light: '#fff0f6', emoji: '👑', princess: true },
   };
   function prof(name) { return PROFILES[name] || { color: '#888', light: '#f5f5f5', emoji: '👤' }; }
