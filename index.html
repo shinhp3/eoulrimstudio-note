@@ -6,17 +6,14 @@
   <title>어울림스튜디오 메모장</title>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
-    body { font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, sans-serif; background: #f0f2f5; min-height: 100vh; }
+    body { font-family: 'Segoe UI', -apple-system, sans-serif; overflow: hidden; background: #0f0f1a; }
 
+    /* ── 프로필 화면 ── */
     #login-screen {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      min-height: 100vh;
-      background: #141414;
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      min-height: 100vh; background: #141414;
     }
-    .profile-screen-title { color: white; font-size: 34px; font-weight: 400; margin-bottom: 48px; }
+    .profile-title { color: white; font-size: 34px; font-weight: 400; margin-bottom: 48px; }
     .profile-list { display: flex; gap: 32px; flex-wrap: wrap; justify-content: center; }
     .profile-card { display: flex; flex-direction: column; align-items: center; gap: 14px; cursor: pointer; }
     .profile-avatar {
@@ -29,294 +26,605 @@
     .profile-name { color: #aaa; font-size: 15px; font-weight: 500; transition: color 0.15s; }
     .profile-card:hover .profile-name { color: white; }
 
-    #app { display: none; }
+    /* ── 앱 ── */
+    #app { display: none; flex-direction: column; height: 100vh; }
 
+    /* ── 헤더 ── */
     header {
-      background: white; border-bottom: 1px solid #e8e8e8;
-      padding: 0 24px; height: 60px;
-      display: flex; align-items: center; justify-content: space-between;
-      position: sticky; top: 0; z-index: 100;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+      height: 52px; background: #1e1e2e; border-bottom: 1px solid #2a2a3e;
+      display: flex; align-items: center; padding: 0 16px; gap: 8px;
+      flex-shrink: 0; z-index: 200;
     }
-    .header-left { display: flex; align-items: center; gap: 12px; }
-    .header-logo { font-size: 24px; }
-    header h1 { font-size: 17px; color: #1a1a2e; font-weight: 700; }
-    .sync-indicator { display: flex; align-items: center; gap: 6px; font-size: 12px; padding: 4px 10px; border-radius: 20px; transition: all 0.3s; }
-    .sync-indicator.synced { color: #27ae60; background: #eafaf1; }
-    .sync-indicator.syncing { color: #e67e22; background: #fff9f0; }
-    .sync-indicator.error { color: #e74c3c; background: #fff0f0; }
-    .sync-dot { width: 7px; height: 7px; border-radius: 50%; background: currentColor; }
-    .sync-indicator.synced .sync-dot { animation: pulse 2s infinite; }
-    @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
-    .header-right { display: flex; align-items: center; gap: 12px; }
-    .user-badge { background: #f0f2f5; padding: 6px 14px; border-radius: 20px; font-size: 13px; color: #555; font-weight: 500; }
-    .logout-btn { background: none; border: 1px solid #ddd; padding: 6px 14px; border-radius: 8px; font-size: 13px; color: #888; cursor: pointer; }
-    .logout-btn:hover { border-color: #999; color: #555; }
-
-    .layout { display: flex; height: calc(100vh - 60px); }
-
-    .sidebar { width: 260px; background: white; border-right: 1px solid #e8e8e8; display: flex; flex-direction: column; flex-shrink: 0; }
-    .sidebar-header { padding: 16px; border-bottom: 1px solid #f0f0f0; display: flex; align-items: center; justify-content: space-between; }
-    .sidebar-title { font-size: 13px; font-weight: 600; color: #888; text-transform: uppercase; letter-spacing: 0.5px; }
-    .add-note-btn {
-      width: 28px; height: 28px; background: linear-gradient(135deg, #667eea, #764ba2);
-      color: white; border: none; border-radius: 8px; font-size: 18px;
-      cursor: pointer; display: flex; align-items: center; justify-content: center; line-height: 1;
+    .logo { font-size: 20px; }
+    .app-title { color: white; font-size: 15px; font-weight: 700; margin-right: 4px; }
+    .sync-pill {
+      display: flex; align-items: center; gap: 5px; font-size: 11px;
+      padding: 3px 9px; border-radius: 20px; transition: all 0.3s;
     }
-    .add-note-btn:hover { opacity: 0.85; }
-    .notes-list { flex: 1; overflow-y: auto; padding: 8px; }
-    .note-item { padding: 12px 14px; border-radius: 10px; cursor: pointer; transition: background 0.15s; margin-bottom: 2px; border: 2px solid transparent; }
-    .note-item:hover { background: #f7f8fa; }
-    .note-item.active { background: #f0f0ff; border-color: #667eea22; }
-    .note-item-title { font-size: 14px; font-weight: 600; color: #2c2c2c; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-bottom: 4px; }
-    .note-item-preview { font-size: 12px; color: #aaa; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-    .note-item-meta { display: flex; align-items: center; justify-content: space-between; margin-top: 6px; }
-    .note-item-time { font-size: 11px; color: #ccc; }
-    .note-item-author { font-size: 11px; color: #9b59b6; background: #f5eeff; padding: 2px 8px; border-radius: 10px; }
+    .sync-pill.synced { color: #10b981; background: #06403033; }
+    .sync-pill.syncing { color: #f97316; background: #7c2d1233; }
+    .sync-pill.error   { color: #ef4444; background: #7f1d1d33; }
+    .sync-dot { width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
+    .sync-pill.synced .sync-dot { animation: pulse 2s infinite; }
+    @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.3} }
+    .sep { flex: 1; }
+    .tool-btn {
+      display: flex; align-items: center; gap: 5px;
+      padding: 6px 12px; border-radius: 8px; border: 1px solid #3a3a4e;
+      background: #2a2a3e; color: #ccc; font-size: 13px; cursor: pointer;
+      transition: all 0.15s; white-space: nowrap;
+    }
+    .tool-btn:hover { background: #3a3a5e; border-color: #5a5a7e; color: white; }
+    .user-pill { padding: 5px 12px; border-radius: 20px; font-size: 13px; font-weight: 600; color: white; }
+    .logout-btn {
+      background: none; border: 1px solid #3a3a4e; padding: 5px 12px;
+      border-radius: 8px; font-size: 12px; color: #888; cursor: pointer;
+    }
+    .logout-btn:hover { border-color: #666; color: #ccc; }
 
-    .editor-area { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
-    .editor-toolbar { padding: 12px 24px; background: white; border-bottom: 1px solid #e8e8e8; display: flex; align-items: center; justify-content: space-between; gap: 12px; }
-    #note-title-input { font-size: 20px; font-weight: 700; color: #1a1a2e; border: none; outline: none; flex: 1; background: transparent; }
-    #note-title-input::placeholder { color: #ccc; }
-    .editor-actions { display: flex; align-items: center; gap: 8px; }
-    .save-status { font-size: 12px; color: #aaa; }
-    .delete-btn { padding: 6px 14px; background: none; border: 1px solid #ffc0c0; color: #e74c3c; border-radius: 8px; font-size: 13px; cursor: pointer; }
-    .delete-btn:hover { background: #fff0f0; }
-    #note-content { flex: 1; padding: 24px; font-size: 15px; line-height: 1.8; color: #2c2c2c; border: none; outline: none; resize: none; background: #fafafa; font-family: inherit; }
-    #note-content::placeholder { color: #ddd; }
-    .empty-state { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; color: #ccc; gap: 12px; }
-    .empty-state .icon { font-size: 64px; }
-    .empty-state p { font-size: 15px; }
-    ::-webkit-scrollbar { width: 4px; }
-    ::-webkit-scrollbar-track { background: transparent; }
-    ::-webkit-scrollbar-thumb { background: #ddd; border-radius: 4px; }
+    /* ── 캔버스 ── */
+    #viewport {
+      flex: 1; position: relative; overflow: hidden;
+      background-color: #0f0f1a;
+      background-image: radial-gradient(circle, #252538 1.2px, transparent 1.2px);
+      background-size: 28px 28px;
+    }
+    #canvas { position: absolute; top: 0; left: 0; width: 0; height: 0; transform-origin: 0 0; }
+
+    /* ── 요소 공통 ── */
+    .el {
+      position: absolute; border-radius: 8px;
+      box-shadow: 0 4px 24px rgba(0,0,0,0.45);
+      transition: box-shadow 0.15s;
+      display: flex; flex-direction: column;
+    }
+    .el.selected { outline: 2px solid rgba(255,255,255,0.75); outline-offset: 2px; }
+    .el-header {
+      height: 30px; display: flex; align-items: center; padding: 0 10px;
+      border-radius: 8px 8px 0 0; cursor: grab; flex-shrink: 0;
+    }
+    .el-header:active { cursor: grabbing; }
+    .el-author-label { font-size: 11px; font-weight: 700; color: rgba(255,255,255,0.92); letter-spacing: 0.3px; }
+
+    /* ── 스티커 노트 ── */
+    .el-sticky {}
+    .el-body { flex: 1; border-radius: 0 0 8px 8px; padding: 10px; min-height: 0; }
+    .el-text {
+      width: 100%; height: 100%; border: none; outline: none; resize: none;
+      font-size: 13px; line-height: 1.75; background: transparent;
+      color: #1a1a2e; font-family: inherit; pointer-events: none; cursor: default;
+    }
+    .el-text.editing { pointer-events: auto; cursor: text; }
+
+    /* ── 이미지 ── */
+    .el-image {}
+    .el-img-body { flex: 1; border-radius: 0 0 8px 8px; overflow: hidden; background: #111; }
+    .el-img-body img { width: 100%; height: 100%; object-fit: contain; display: block; pointer-events: none; }
+
+    /* ── 리사이즈 핸들 ── */
+    .resize-handle {
+      position: absolute; right: -6px; bottom: -6px;
+      width: 13px; height: 13px; border-radius: 3px;
+      cursor: nwse-resize; background: white; border: 2px solid #6366f1;
+      opacity: 0; transition: opacity 0.15s; z-index: 10;
+    }
+    .el.selected .resize-handle { opacity: 1; }
+
+    /* ── 힌트 ── */
+    .canvas-hint {
+      position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%);
+      color: #2a2a4e; font-size: 12px; pointer-events: none;
+      background: rgba(255,255,255,0.04); padding: 6px 16px; border-radius: 20px;
+      white-space: nowrap;
+    }
+
+    #file-input { display: none; }
   </style>
 </head>
 <body>
 
+<!-- 프로필 선택 -->
 <div id="login-screen">
-  <div class="profile-screen-title">누가 볼 건가요?</div>
+  <div class="profile-title">누가 볼 건가요?</div>
   <div class="profile-list">
     <div class="profile-card" onclick="selectProfile('신효범')">
-      <div class="profile-avatar" style="background:#5b6ee8;">🐻</div>
+      <div class="profile-avatar" style="background:#6366f1;">🐻</div>
       <div class="profile-name">신효범</div>
     </div>
     <div class="profile-card" onclick="selectProfile('밀양장석현')">
-      <div class="profile-avatar" style="background:#e8845b;">🦊</div>
+      <div class="profile-avatar" style="background:#f97316;">🦊</div>
       <div class="profile-name">밀양장석현</div>
     </div>
     <div class="profile-card" onclick="selectProfile('에겐현진')">
-      <div class="profile-avatar" style="background:#5be8a0;">🐱</div>
+      <div class="profile-avatar" style="background:#10b981;">🐱</div>
       <div class="profile-name">에겐현진</div>
     </div>
   </div>
 </div>
 
+<!-- 메인 앱 -->
 <div id="app">
   <header>
-    <div class="header-left">
-      <span class="header-logo">📝</span>
-      <h1>어울림스튜디오 메모장</h1>
-      <div class="sync-indicator synced" id="sync-indicator">
-        <div class="sync-dot"></div>
-        <span id="sync-text">동기화됨</span>
-      </div>
+    <span class="logo">📝</span>
+    <span class="app-title">어울림스튜디오</span>
+    <div class="sync-pill synced" id="sync-pill">
+      <div class="sync-dot"></div>
+      <span id="sync-text">동기화됨</span>
     </div>
-    <div class="header-right">
-      <span class="user-badge" id="user-name-display"></span>
-      <button class="logout-btn" onclick="logout()">로그아웃</button>
-    </div>
+    <div class="sep"></div>
+    <button class="tool-btn" onclick="addSticky()">✏️ 메모 추가</button>
+    <button class="tool-btn" onclick="document.getElementById('file-input').click()">🖼 사진 추가</button>
+    <div class="user-pill" id="user-pill"></div>
+    <button class="logout-btn" onclick="logout()">로그아웃</button>
   </header>
-
-  <div class="layout">
-    <div class="sidebar">
-      <div class="sidebar-header">
-        <span class="sidebar-title">메모</span>
-        <button class="add-note-btn" onclick="createNote()">+</button>
-      </div>
-      <div class="notes-list" id="notes-list"></div>
-    </div>
-    <div class="editor-area">
-      <div class="empty-state" id="empty-state">
-        <div class="icon">📄</div>
-        <p>왼쪽에서 메모를 선택하거나 새로 만드세요</p>
-      </div>
-      <div id="editor" style="display:none; flex-direction:column; flex:1; overflow:hidden;">
-        <div class="editor-toolbar">
-          <input type="text" id="note-title-input" placeholder="제목을 입력하세요" />
-          <div class="editor-actions">
-            <span class="save-status" id="save-status"></span>
-            <button class="delete-btn" onclick="deleteNote()">삭제</button>
-          </div>
-        </div>
-        <textarea id="note-content" placeholder="여기에 메모를 작성하세요...&#10;&#10;저장하면 팀원들과 공유됩니다 ✨"></textarea>
-      </div>
-    </div>
+  <div id="viewport">
+    <div id="canvas"></div>
+    <div class="canvas-hint">더블클릭으로 메모 추가 · 스크롤로 줌 · 드래그로 화면 이동</div>
   </div>
 </div>
+
+<input type="file" id="file-input" accept="image/*">
 
 <script>
   const WORKER_URL = "https://eoulrimstudio-upload.eoulrimstudio.workers.dev";
 
+  const PROFILES = {
+    '신효범':    { color: '#6366f1', light: '#eef2ff', emoji: '🐻' },
+    '밀양장석현': { color: '#f97316', light: '#fff7ed', emoji: '🦊' },
+    '에겐현진':  { color: '#10b981', light: '#ecfdf5', emoji: '🐱' },
+  };
+  function prof(name) { return PROFILES[name] || { color: '#888', light: '#f5f5f5', emoji: '👤' }; }
+
+  // ── 상태 ──────────────────────────────────────────────
   let currentUser = null;
-  let notes = {};
-  let currentNoteId = null;
+  let elements = [];
+  let vp = { x: 0, y: 0, zoom: 1 };  // viewport
+  let selected = null;
+  let editingId = null;
   let saveTimer = null;
   let pollTimer = null;
   let isDirty = false;
+  let action = null;
+  // action: { type:'pan'|'move'|'resize', sx, sy, ... }
 
-  async function apiFetch(method, body) {
-    const opts = { method, headers: { "Content-Type": "application/json" } };
-    if (body !== undefined) opts.body = JSON.stringify(body);
-    const res = await fetch(WORKER_URL + "/api/notes", opts);
-    if (!res.ok) throw new Error("HTTP " + res.status);
-    return res.json();
-  }
+  const nodeMap = new Map();
+  const canvasEl = document.getElementById('canvas');
+  const viewportEl = document.getElementById('viewport');
 
-  window.selectProfile = function (name) {
+  // ── 프로필 / 로그인 ───────────────────────────────────
+  window.selectProfile = function(name) {
     currentUser = name;
-    sessionStorage.setItem("notepad-user", name);
+    sessionStorage.setItem('notepad-user', name);
     showApp();
   };
 
-  window.logout = function () {
-    sessionStorage.removeItem("notepad-user");
+  window.logout = function() {
+    sessionStorage.removeItem('notepad-user');
     clearInterval(pollTimer);
     currentUser = null;
-    currentNoteId = null;
-    isDirty = false;
-    document.getElementById("app").style.display = "none";
-    document.getElementById("login-screen").style.display = "flex";
+    document.getElementById('app').style.display = 'none';
+    document.getElementById('login-screen').style.display = 'flex';
   };
 
   function showApp() {
-    document.getElementById("login-screen").style.display = "none";
-    document.getElementById("app").style.display = "block";
-    document.getElementById("user-name-display").textContent = currentUser;
-    fetchNotes();
-    pollTimer = setInterval(() => { if (!isDirty) fetchNotes(); }, 10000);
+    document.getElementById('login-screen').style.display = 'none';
+    document.getElementById('app').style.display = 'flex';
+    const p = prof(currentUser);
+    const pill = document.getElementById('user-pill');
+    pill.textContent = `${p.emoji} ${currentUser}`;
+    pill.style.background = p.color;
+    fetchData();
+    pollTimer = setInterval(() => { if (!isDirty) fetchData(); }, 10000);
   }
 
-  async function fetchNotes() {
-    setSyncStatus("syncing", "동기화 중...");
+  // ── API ───────────────────────────────────────────────
+  async function fetchData() {
+    setSyncStatus('syncing', '동기화 중...');
     try {
-      const data = await apiFetch("GET");
-      notes = data;
-      renderNotesList();
-      if (currentNoteId && notes[currentNoteId] && !isDirty) {
-        document.getElementById("note-title-input").value = notes[currentNoteId].title || "";
-        document.getElementById("note-content").value = notes[currentNoteId].content || "";
+      const res = await fetch(WORKER_URL + '/api/notes');
+      const data = await res.json();
+      if (data.version === 2 && Array.isArray(data.elements)) {
+        // 원격 변경사항만 반영 (현재 편집 중인 요소 제외)
+        for (const remote of data.elements) {
+          const local = elements.find(e => e.id === remote.id);
+          if (!local) {
+            elements.push(remote);
+          } else if (remote.updatedAt > local.updatedAt && remote.id !== editingId) {
+            Object.assign(local, remote);
+          }
+        }
+        // 원격에서 삭제된 요소 제거
+        elements = elements.filter(e =>
+          e.id === editingId || data.elements.find(r => r.id === e.id)
+        );
+        renderElements();
       }
-      setSyncStatus("synced", "동기화됨");
+      setSyncStatus('synced', '동기화됨');
     } catch {
-      setSyncStatus("error", "연결 오류");
+      setSyncStatus('error', '연결 오류');
     }
   }
 
-  async function pushNotes() {
-    await apiFetch("PUT", notes);
-  }
-
-  function setSyncStatus(state, text) {
-    document.getElementById("sync-indicator").className = "sync-indicator " + state;
-    document.getElementById("sync-text").textContent = text;
-  }
-
-  function renderNotesList() {
-    const list = document.getElementById("notes-list");
-    const sorted = Object.entries(notes).sort(([, a], [, b]) => (b.updatedAt || 0) - (a.updatedAt || 0));
-    if (!sorted.length) {
-      list.innerHTML = '<div style="padding:20px;text-align:center;color:#ccc;font-size:13px;">메모가 없습니다<br>+ 버튼으로 추가하세요</div>';
-      return;
-    }
-    list.innerHTML = sorted.map(([id, note]) => `
-      <div class="note-item ${id === currentNoteId ? "active" : ""}" onclick="selectNote('${id}')">
-        <div class="note-item-title">${esc(note.title || "제목 없음")}</div>
-        <div class="note-item-preview">${esc((note.content || "").slice(0, 40) || "내용 없음")}</div>
-        <div class="note-item-meta">
-          <span class="note-item-time">${formatTime(note.updatedAt)}</span>
-          <span class="note-item-author">${esc(note.author || "")}</span>
-        </div>
-      </div>
-    `).join("");
-  }
-
-  window.selectNote = function (id) {
-    currentNoteId = id;
-    isDirty = false;
-    renderNotesList();
-    document.getElementById("empty-state").style.display = "none";
-    document.getElementById("editor").style.display = "flex";
-    document.getElementById("note-title-input").value = notes[id].title || "";
-    document.getElementById("note-content").value = notes[id].content || "";
-    document.getElementById("save-status").textContent = "";
-  };
-
-  window.createNote = async function () {
-    const id = "note_" + Date.now();
-    notes[id] = { id, title: "새 메모", content: "", author: currentUser, updatedAt: Date.now(), createdAt: Date.now() };
-    renderNotesList();
-    selectNote(id);
-    setSyncStatus("syncing", "저장 중...");
-    try { await pushNotes(); setSyncStatus("synced", "동기화됨"); } catch { setSyncStatus("error", "저장 실패"); }
-    setTimeout(() => { const t = document.getElementById("note-title-input"); t.focus(); t.select(); }, 50);
-  };
-
-  window.deleteNote = async function () {
-    if (!currentNoteId || !confirm("이 메모를 삭제할까요?")) return;
-    delete notes[currentNoteId];
-    currentNoteId = null;
-    isDirty = false;
-    renderNotesList();
-    document.getElementById("editor").style.display = "none";
-    document.getElementById("empty-state").style.display = "flex";
-    setSyncStatus("syncing", "저장 중...");
-    try { await pushNotes(); setSyncStatus("synced", "동기화됨"); } catch { setSyncStatus("error", "저장 실패"); }
-  };
-
-  async function saveNote() {
-    if (!currentNoteId) return;
-    notes[currentNoteId] = {
-      ...notes[currentNoteId],
-      title: document.getElementById("note-title-input").value,
-      content: document.getElementById("note-content").value,
-      author: currentUser,
-      updatedAt: Date.now(),
-    };
-    document.getElementById("save-status").textContent = "저장 중...";
+  async function pushData() {
+    const payload = JSON.stringify({ version: 2, elements });
+    setSyncStatus('syncing', '저장 중...');
     try {
-      await pushNotes();
+      await fetch(WORKER_URL + '/api/notes', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: payload,
+      });
       isDirty = false;
-      document.getElementById("save-status").textContent = "저장됨 ✓";
-      renderNotesList();
+      setSyncStatus('synced', '저장됨 ✓');
     } catch {
-      document.getElementById("save-status").textContent = "저장 실패";
+      setSyncStatus('error', '저장 실패');
     }
   }
 
   function scheduleSave() {
     isDirty = true;
-    document.getElementById("save-status").textContent = "입력 중...";
     clearTimeout(saveTimer);
-    saveTimer = setTimeout(saveNote, 1500);
+    saveTimer = setTimeout(pushData, 1500);
   }
 
-  document.getElementById("note-title-input").addEventListener("input", scheduleSave);
-  document.getElementById("note-content").addEventListener("input", scheduleSave);
-
-  function formatTime(ts) {
-    if (!ts) return "";
-    const d = new Date(ts), now = new Date();
-    if (d.toDateString() === now.toDateString())
-      return d.toLocaleTimeString("ko-KR", { hour: "2-digit", minute: "2-digit" });
-    return d.toLocaleDateString("ko-KR", { month: "short", day: "numeric" });
+  function setSyncStatus(state, text) {
+    document.getElementById('sync-pill').className = 'sync-pill ' + state;
+    document.getElementById('sync-text').textContent = text;
   }
 
-  function esc(str) {
-    return String(str).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+  // ── 좌표 변환 ─────────────────────────────────────────
+  function screenToCanvas(sx, sy) {
+    const r = viewportEl.getBoundingClientRect();
+    return {
+      x: (sx - r.left - vp.x) / vp.zoom,
+      y: (sy - r.top  - vp.y) / vp.zoom,
+    };
   }
 
-  const savedUser = sessionStorage.getItem("notepad-user");
+  function updateTransform() {
+    canvasEl.style.transform = `translate(${vp.x}px,${vp.y}px) scale(${vp.zoom})`;
+  }
+
+  // ── 요소 생성 ─────────────────────────────────────────
+  function newId() { return 'el_' + Date.now() + '_' + Math.random().toString(36).slice(2,6); }
+
+  function addSticky(canvasX, canvasY) {
+    let x, y;
+    if (canvasX !== undefined) {
+      x = canvasX - 110; y = canvasY - 80;
+    } else {
+      const r = viewportEl.getBoundingClientRect();
+      x = (r.width / 2 - vp.x) / vp.zoom - 110;
+      y = (r.height / 2 - vp.y) / vp.zoom - 80;
+    }
+    const el = {
+      id: newId(), type: 'sticky',
+      x, y, w: 220, h: 160,
+      content: '', author: currentUser,
+      createdAt: Date.now(), updatedAt: Date.now(),
+    };
+    elements.push(el);
+    renderElements();
+    selectEl(el.id);
+    setTimeout(() => startEditing(el.id), 30);
+    scheduleSave();
+  }
+  window.addSticky = addSticky;
+
+  function addImage(src) {
+    const img = new Image();
+    img.onload = () => {
+      const MAX = 400;
+      const r = Math.min(MAX / img.width, MAX / img.height, 1);
+      const w = Math.round(img.width * r);
+      const h = Math.round(img.height * r);
+      const rect = viewportEl.getBoundingClientRect();
+      const cx = (rect.width / 2 - vp.x) / vp.zoom;
+      const cy = (rect.height / 2 - vp.y) / vp.zoom;
+      const el = {
+        id: newId(), type: 'image',
+        x: cx - w / 2, y: cy - h / 2,
+        w, h, src,
+        author: currentUser,
+        createdAt: Date.now(), updatedAt: Date.now(),
+      };
+      elements.push(el);
+      renderElements();
+      selectEl(el.id);
+      scheduleSave();
+    };
+    img.src = src;
+  }
+
+  function deleteSelected() {
+    if (!selected) return;
+    stopEditing();
+    elements = elements.filter(e => e.id !== selected);
+    const node = nodeMap.get(selected);
+    if (node) { canvasEl.removeChild(node); nodeMap.delete(selected); }
+    selected = null;
+    scheduleSave();
+  }
+
+  function selectEl(id) {
+    selected = id;
+    for (const [nid, node] of nodeMap) {
+      node.classList.toggle('selected', nid === id);
+    }
+  }
+
+  // ── 편집 ─────────────────────────────────────────────
+  function startEditing(id) {
+    editingId = id;
+    const node = nodeMap.get(id);
+    if (!node) return;
+    const ta = node.querySelector('.el-text');
+    if (ta) { ta.classList.add('editing'); ta.focus(); }
+  }
+
+  function stopEditing() {
+    if (!editingId) return;
+    const node = nodeMap.get(editingId);
+    if (node) {
+      const ta = node.querySelector('.el-text');
+      if (ta) ta.classList.remove('editing');
+    }
+    editingId = null;
+  }
+
+  // ── 렌더 ─────────────────────────────────────────────
+  function renderElements() {
+    // 삭제된 요소 제거
+    for (const [id, node] of nodeMap) {
+      if (!elements.find(e => e.id === id)) {
+        canvasEl.removeChild(node);
+        nodeMap.delete(id);
+      }
+    }
+    // 새 요소 추가 & 기존 요소 업데이트
+    for (const el of elements) {
+      if (!nodeMap.has(el.id)) {
+        const node = buildNode(el);
+        canvasEl.appendChild(node);
+        nodeMap.set(el.id, node);
+      }
+      syncStyle(el);
+    }
+  }
+
+  function buildNode(el) {
+    const p = prof(el.author);
+    const div = document.createElement('div');
+    div.className = `el el-${el.type}`;
+    div.dataset.id = el.id;
+
+    // 헤더
+    const header = document.createElement('div');
+    header.className = 'el-header';
+    header.style.background = p.color;
+    header.innerHTML = `<span class="el-author-label">${p.emoji} ${el.author}</span>`;
+    div.appendChild(header);
+
+    if (el.type === 'sticky') {
+      const body = document.createElement('div');
+      body.className = 'el-body';
+      body.style.background = p.light;
+
+      const ta = document.createElement('textarea');
+      ta.className = 'el-text';
+      ta.placeholder = '메모를 입력하세요...';
+      ta.value = el.content || '';
+      ta.addEventListener('input', () => {
+        el.content = ta.value;
+        el.updatedAt = Date.now();
+        scheduleSave();
+      });
+      // 텍스트 영역 클릭이 드래그로 이어지지 않게
+      ta.addEventListener('mousedown', e => { if (editingId === el.id) e.stopPropagation(); });
+
+      body.appendChild(ta);
+      div.appendChild(body);
+
+    } else if (el.type === 'image') {
+      const body = document.createElement('div');
+      body.className = 'el-img-body';
+      const img = document.createElement('img');
+      img.src = el.src;
+      img.alt = '이미지';
+      img.draggable = false;
+      body.appendChild(img);
+      div.appendChild(body);
+    }
+
+    const handle = document.createElement('div');
+    handle.className = 'resize-handle';
+    handle.dataset.resize = 'true';
+    div.appendChild(handle);
+
+    return div;
+  }
+
+  function syncStyle(el) {
+    const node = nodeMap.get(el.id);
+    if (!node) return;
+    const p = prof(el.author);
+
+    node.style.left   = el.x + 'px';
+    node.style.top    = el.y + 'px';
+    node.style.width  = el.w + 'px';
+    node.style.height = el.h + 'px';
+    node.classList.toggle('selected', selected === el.id);
+
+    const header = node.querySelector('.el-header');
+    if (header) header.style.background = p.color;
+
+    const body = node.querySelector('.el-body');
+    if (body) body.style.background = p.light;
+
+    // 편집 중이 아닐 때만 텍스트 동기화
+    if (el.type === 'sticky' && editingId !== el.id) {
+      const ta = node.querySelector('.el-text');
+      if (ta && ta.value !== (el.content || '')) ta.value = el.content || '';
+    }
+  }
+
+  // ── 마우스 이벤트 ─────────────────────────────────────
+  viewportEl.addEventListener('mousedown', e => {
+    if (e.button !== 0) return;
+
+    // 편집 중 클릭 처리
+    if (editingId) {
+      const node = nodeMap.get(editingId);
+      if (node?.contains(e.target)) return; // 편집 중인 요소 내부는 패스
+      stopEditing();
+    }
+
+    // 리사이즈 핸들
+    if (e.target.dataset.resize) {
+      const elDiv = e.target.closest('.el');
+      const id = elDiv?.dataset.id;
+      const el = elements.find(x => x.id === id);
+      if (!el) return;
+      selectEl(id);
+      action = { type: 'resize', id, sx: e.clientX, sy: e.clientY, sw: el.w, sh: el.h };
+      e.preventDefault();
+      return;
+    }
+
+    // 요소 위 클릭
+    const elDiv = e.target.closest('.el');
+    if (elDiv) {
+      const id = elDiv.dataset.id;
+      const el = elements.find(x => x.id === id);
+      if (!el) return;
+      selectEl(id);
+      action = { type: 'move', id, sx: e.clientX, sy: e.clientY, ex: el.x, ey: el.y };
+      e.preventDefault();
+      return;
+    }
+
+    // 빈 캔버스 — 팬
+    selectEl(null);
+    action = { type: 'pan', sx: e.clientX, sy: e.clientY, vx: vp.x, vy: vp.y };
+  });
+
+  document.addEventListener('mousemove', e => {
+    if (!action) return;
+    const dx = e.clientX - action.sx;
+    const dy = e.clientY - action.sy;
+
+    if (action.type === 'pan') {
+      vp.x = action.vx + dx;
+      vp.y = action.vy + dy;
+      updateTransform();
+
+    } else if (action.type === 'move') {
+      const el = elements.find(x => x.id === action.id);
+      if (!el) return;
+      el.x = action.ex + dx / vp.zoom;
+      el.y = action.ey + dy / vp.zoom;
+      syncStyle(el);
+      scheduleSave();
+
+    } else if (action.type === 'resize') {
+      const el = elements.find(x => x.id === action.id);
+      if (!el) return;
+      el.w = Math.max(100, action.sw + dx / vp.zoom);
+      el.h = Math.max(60,  action.sh + dy / vp.zoom);
+      syncStyle(el);
+      scheduleSave();
+    }
+  });
+
+  document.addEventListener('mouseup', () => { action = null; });
+
+  // 더블클릭: 스티커 생성 or 텍스트 편집
+  viewportEl.addEventListener('dblclick', e => {
+    const sticky = e.target.closest('.el-sticky');
+    if (sticky) { startEditing(sticky.dataset.id); return; }
+    if (e.target.closest('.el')) return;
+    const pos = screenToCanvas(e.clientX, e.clientY);
+    addSticky(pos.x, pos.y);
+  });
+
+  // 스크롤 줌
+  viewportEl.addEventListener('wheel', e => {
+    e.preventDefault();
+    const factor = e.deltaY > 0 ? 0.92 : 1.08;
+    const newZoom = Math.max(0.15, Math.min(5, vp.zoom * factor));
+    const r = viewportEl.getBoundingClientRect();
+    const mx = e.clientX - r.left;
+    const my = e.clientY - r.top;
+    vp.x = mx - (mx - vp.x) * (newZoom / vp.zoom);
+    vp.y = my - (my - vp.y) * (newZoom / vp.zoom);
+    vp.zoom = newZoom;
+    updateTransform();
+  }, { passive: false });
+
+  // 키보드
+  document.addEventListener('keydown', e => {
+    if (editingId) return;
+    if ((e.key === 'Delete' || e.key === 'Backspace') && selected) {
+      e.preventDefault();
+      deleteSelected();
+    }
+    // Ctrl+0: 뷰 초기화
+    if (e.key === '0' && (e.ctrlKey || e.metaKey)) {
+      e.preventDefault();
+      vp = { x: 0, y: 0, zoom: 1 };
+      updateTransform();
+    }
+  });
+
+  // 클립보드 이미지 붙여넣기
+  document.addEventListener('paste', async e => {
+    if (editingId) return;
+    const items = e.clipboardData?.items;
+    if (!items) return;
+    for (const item of items) {
+      if (item.type.startsWith('image/')) {
+        e.preventDefault();
+        const src = await fileToBase64(item.getAsFile());
+        addImage(src);
+        return;
+      }
+    }
+  });
+
+  // 파일 선택
+  document.getElementById('file-input').addEventListener('change', async e => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const src = await fileToBase64(file);
+    addImage(src);
+    e.target.value = '';
+  });
+
+  // ── 이미지 리사이즈 ───────────────────────────────────
+  function fileToBase64(file) {
+    return new Promise(resolve => {
+      const img = new Image();
+      const url = URL.createObjectURL(file);
+      img.onload = () => {
+        const MAX = 1200;
+        let w = img.width, h = img.height;
+        if (w > MAX || h > MAX) {
+          const r = Math.min(MAX / w, MAX / h);
+          w = Math.round(w * r); h = Math.round(h * r);
+        }
+        const c = document.createElement('canvas');
+        c.width = w; c.height = h;
+        c.getContext('2d').drawImage(img, 0, 0, w, h);
+        URL.revokeObjectURL(url);
+        resolve(c.toDataURL('image/jpeg', 0.85));
+      };
+      img.src = url;
+    });
+  }
+
+  // ── 초기화 ───────────────────────────────────────────
+  updateTransform();
+  const savedUser = sessionStorage.getItem('notepad-user');
   if (savedUser) { currentUser = savedUser; showApp(); }
 </script>
 </body>
