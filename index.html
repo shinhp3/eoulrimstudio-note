@@ -190,27 +190,13 @@
 
     #file-input { display: none; }
 
-    /* ── 강아지 펫 (캔버스 내부, Y-정렬) ── */
-    #pet-wrap {
-      position: absolute; pointer-events: none;
-      width: 0; height: 0;
+    /* ── oneko 고양이 ── */
+    #oneko-cat {
+      width: 32px; height: 32px;
+      position: fixed; pointer-events: none;
+      image-rendering: pixelated;
+      z-index: 9999;
     }
-    #pet {
-      font-size: 34px; line-height: 1;
-      pointer-events: auto; cursor: grab; user-select: none;
-      filter: drop-shadow(0 3px 3px rgba(0,0,0,0.2));
-      display: block; white-space: nowrap;
-    }
-    #pet.walking { animation: petBounce 0.32s ease-in-out infinite; }
-    #pet.held    { cursor: grabbing; animation: petWiggle 0.25s ease-in-out infinite; }
-    #pet-bubble  {
-      position: absolute; font-size: 16px; pointer-events: none;
-      animation: bubbleFloat 1.6s ease-in-out infinite;
-      left: 20px; bottom: 40px;
-    }
-    @keyframes petBounce  { 0%,100%{transform:scaleX(var(--fx,1)) translateY(0)} 50%{transform:scaleX(var(--fx,1)) translateY(-7px)} }
-    @keyframes petWiggle  { 0%,100%{transform:scaleX(var(--fx,1)) rotate(-8deg) scale(1.2)} 50%{transform:scaleX(var(--fx,1)) rotate(8deg) scale(1.2)} }
-    @keyframes bubbleFloat{ 0%,100%{transform:translateY(0)} 50%{transform:translateY(-4px)} }
 
     /* ── 국밥 프로필 카드 ── */
     .gukbap-card {
@@ -367,13 +353,7 @@
     <button class="logout-btn" onclick="logout()">로그아웃</button>
   </header>
   <div id="viewport">
-    <div id="canvas">
-      <!-- 강아지 펫 (캔버스 내부 — Y 정렬 가능) -->
-      <div id="pet-wrap" style="display:none; position:absolute; transform-origin:bottom center;">
-        <div id="pet" style="position:absolute; bottom:0; left:50%; transform:translateX(-50%);">🐕</div>
-        <div id="pet-bubble" style="position:absolute; display:none;"></div>
-      </div>
-    </div>
+    <div id="canvas"></div>
     <div id="sel-box"></div>
     <div class="canvas-hint">더블클릭: 메모 추가 · Space+드래그: 화면 이동 · 드래그: 범위 선택 · Shift+클릭: 복수 선택</div>
   </div>
@@ -472,7 +452,7 @@
     currentUser = name;
     sessionStorage.setItem('notepad-user', name);
     showApp();
-    initDog();
+    initOneko();
   };
 
   window.logout = function() {
@@ -1072,128 +1052,118 @@
     });
   }
 
-  // ── 강아지 펫 (캔버스 내부 — Y-정렬) ──────────────────
-  const petWrap   = document.getElementById('pet-wrap');
-  const petEl     = document.getElementById('pet');
-  const petBubble = document.getElementById('pet-bubble');
+  // ── oneko 고양이 (adryd325/oneko.js, MIT License) ────
+  let onekoEl = null;
 
-  const dog = {
-    cx: 0, cy: 0,    // 캔버스 좌표
-    tx: 0, ty: 0,    // 목표 캔버스 좌표
-    facing: 1,
-    state: 'sit',    // 'walk' | 'sit' | 'sleep'
-    held: false,
-    timer: null,
-  };
-
-  function renderDog() {
-    const emoji = dog.state === 'walk' ? '🐕' : '🐶';
-    petEl.textContent = emoji;
-    petEl.style.setProperty('--fx', dog.facing);
-    if (!dog.held) petEl.style.transform = `scaleX(${dog.facing})`;
-    else petEl.style.transform = '';
-    petEl.className = dog.held ? 'held' : dog.state === 'walk' ? 'walking' : '';
-
-    // 캔버스 좌표로 위치 설정 (발 위치가 cy)
-    petWrap.style.left = dog.cx + 'px';
-    petWrap.style.top  = dog.cy + 'px';
-    // 줌 보정 — 화면 크기는 항상 동일하게
-    petWrap.style.transform = `scale(${1 / vp.zoom})`;
-    // Y 정렬 zIndex
-    petWrap.style.zIndex = Math.floor(dog.cy) + 1;
-
-    if (dog.state === 'sleep') {
-      petBubble.textContent = '💤';
-      petBubble.style.display = 'block';
-    } else {
-      petBubble.style.display = 'none';
-    }
-  }
-
-  // 현재 화면에 보이는 캔버스 영역 기준 랜덤 목표
-  function dogRandomTarget() {
-    const r = viewportEl.getBoundingClientRect();
-    const margin = 80 / vp.zoom;
-    const tl = screenToCanvas(r.left + 10, r.top + 56);
-    const br = screenToCanvas(r.right - 10, r.bottom - 10);
-    return {
-      x: tl.x + margin + Math.random() * Math.max(0, br.x - tl.x - margin * 2),
-      y: tl.y + margin + Math.random() * Math.max(0, br.y - tl.y - margin * 2),
+  function initOneko() {
+    if (onekoEl) return;
+    const spriteSets = {
+      idle:         [[-3,-3]],
+      alert:        [[-7,-3]],
+      scratchSelf:  [[-5,0],[-6,0],[-7,0]],
+      scratchWallN: [[0,0],[0,-1]],
+      scratchWallS: [[-7,-1],[-6,-2]],
+      scratchWallE: [[-2,-2],[-2,-3]],
+      scratchWallW: [[-4,0],[-4,-1]],
+      tired:        [[-3,-2]],
+      sleeping:     [[-2,0],[-2,-1]],
+      N:  [[-1,-2],[-1,-3]], NE: [[0,-2],[0,-3]],
+      E:  [[-3,0],[-3,-1]], SE: [[-5,-1],[-5,-2]],
+      S:  [[-6,-3],[-7,-2]], SW: [[-5,-3],[-6,-1]],
+      W:  [[-4,-2],[-4,-3]], NW: [[-1,0],[-1,-1]],
     };
-  }
 
-  function dogNextAction() {
-    clearTimeout(dog.timer);
-    if (dog.held) return;
-    const r = Math.random();
-    if (r < 0.55) {
-      const t = dogRandomTarget();
-      dog.tx = t.x; dog.ty = t.y;
-      dog.state = 'walk';
-      dog.timer = setTimeout(dogNextAction, 4000 + Math.random() * 4000);
-    } else if (r < 0.8) {
-      dog.state = 'sit';
-      dog.timer = setTimeout(dogNextAction, 2000 + Math.random() * 2000);
-    } else {
-      dog.state = 'sleep';
-      dog.timer = setTimeout(dogNextAction, 4000 + Math.random() * 4000);
+    onekoEl = document.createElement('div');
+    onekoEl.id = 'oneko-cat';
+    onekoEl.style.backgroundImage =
+      "url('https://raw.githubusercontent.com/adryd325/oneko.js/14bab15a755d0e35cd4ae19c931d96d306f5a4e3/oneko.gif')";
+    onekoEl.style.left = '32px';
+    onekoEl.style.top  = '32px';
+    document.body.appendChild(onekoEl);
+
+    let nekoPosX = 32, nekoPosY = 32;
+    let mousePosX = 0, mousePosY = 0;
+    let frameCount = 0, idleTime = 0;
+    let idleAnimation = null, idleAnimationFrame = 0;
+    const SPEED = 10;
+
+    document.addEventListener('mousemove', e => { mousePosX = e.clientX; mousePosY = e.clientY; });
+
+    function setSprite(name, frame) {
+      const s = spriteSets[name][frame % spriteSets[name].length];
+      onekoEl.style.backgroundPosition = `${s[0]*32}px ${s[1]*32}px`;
     }
-    renderDog();
-  }
 
-  const DOG_SPEED = 1.8; // 캔버스 픽셀/프레임
-  setInterval(() => {
-    if (dog.held || dog.state !== 'walk') return;
-    const dx = dog.tx - dog.cx;
-    const dy = dog.ty - dog.cy;
-    const dist = Math.sqrt(dx * dx + dy * dy);
-    if (dist < 4) { dog.state = 'sit'; renderDog(); dogNextAction(); return; }
-    dog.cx += (dx / dist) * DOG_SPEED;
-    dog.cy += (dy / dist) * DOG_SPEED;
-    if (Math.abs(dx) > 0.5) dog.facing = dx > 0 ? 1 : -1;
-    renderDog();
-  }, 16);
+    function resetIdle() { idleAnimation = null; idleAnimationFrame = 0; }
 
-  // 드래그
-  petEl.addEventListener('mousedown', e => {
-    dog.held = true;
-    clearTimeout(dog.timer);
-    renderDog();
-    e.stopPropagation();
-    e.preventDefault();
-  });
-  document.addEventListener('mousemove', e => {
-    if (!dog.held) return;
-    const c = screenToCanvas(e.clientX, e.clientY);
-    if (c.x - dog.cx > 1) dog.facing = 1;
-    else if (dog.cx - c.x > 1) dog.facing = -1;
-    dog.cx = c.x; dog.cy = c.y;
-    renderDog();
-  });
-  document.addEventListener('mouseup', () => {
-    if (!dog.held) return;
-    dog.held = false;
-    dog.tx = dog.cx; dog.ty = dog.cy;
-    dog.state = 'sit';
-    renderDog();
-    dog.timer = setTimeout(dogNextAction, 1500);
-  });
+    function idle() {
+      idleTime++;
+      if (idleTime > 10 && Math.floor(Math.random() * 200) === 0 && !idleAnimation) {
+        const opts = ['sleeping', 'scratchSelf'];
+        if (nekoPosX < 32) opts.push('scratchWallW');
+        if (nekoPosY < 32) opts.push('scratchWallN');
+        if (nekoPosX > window.innerWidth  - 32) opts.push('scratchWallE');
+        if (nekoPosY > window.innerHeight - 32) opts.push('scratchWallS');
+        idleAnimation = opts[Math.floor(Math.random() * opts.length)];
+      }
+      switch (idleAnimation) {
+        case 'sleeping':
+          if (idleAnimationFrame < 8) { setSprite('tired', 0); break; }
+          setSprite('sleeping', Math.floor(idleAnimationFrame / 4));
+          if (idleAnimationFrame > 192) resetIdle();
+          break;
+        case 'scratchWallN': case 'scratchWallS':
+        case 'scratchWallE': case 'scratchWallW': case 'scratchSelf':
+          setSprite(idleAnimation, idleAnimationFrame);
+          if (idleAnimationFrame > 9) resetIdle();
+          break;
+        default:
+          setSprite('idle', 0);
+      }
+      idleAnimationFrame++;
+    }
 
-  function initDog() {
-    petWrap.style.display = 'block';
-    const r = viewportEl.getBoundingClientRect();
-    const c = screenToCanvas(r.left + r.width / 2, r.top + r.height / 2);
-    dog.cx = c.x; dog.cy = c.y;
-    dog.tx = c.x; dog.ty = c.y;
-    renderDog();
-    dogNextAction();
+    function frame() {
+      frameCount++;
+      const dx = nekoPosX - mousePosX;
+      const dy = nekoPosY - mousePosY;
+      const dist = Math.sqrt(dx*dx + dy*dy);
+      if (dist < SPEED || dist < 48) { idle(); return; }
+      idleAnimation = null; idleAnimationFrame = 0;
+      if (idleTime > 1) {
+        setSprite('alert', 0);
+        idleTime = Math.min(idleTime, 7) - 1;
+        return;
+      }
+      let dir = '';
+      dir += dy / dist >  0.5 ? 'N' : '';
+      dir += dy / dist < -0.5 ? 'S' : '';
+      dir += dx / dist >  0.5 ? 'W' : '';
+      dir += dx / dist < -0.5 ? 'E' : '';
+      setSprite(dir, frameCount);
+      nekoPosX -= (dx / dist) * SPEED;
+      nekoPosY -= (dy / dist) * SPEED;
+      nekoPosX = Math.min(Math.max(16, nekoPosX), window.innerWidth  - 16);
+      nekoPosY = Math.min(Math.max(16, nekoPosY), window.innerHeight - 16);
+      onekoEl.style.left = (nekoPosX - 16) + 'px';
+      onekoEl.style.top  = (nekoPosY - 16) + 'px';
+    }
+
+    let lastTs;
+    function loop() {
+      if (!onekoEl?.isConnected) return;
+      if (!lastTs) lastTs = performance.now();
+      if (performance.now() - lastTs > 100) { lastTs = performance.now(); frame(); }
+      requestAnimationFrame(loop);
+    }
+    loop();
   }
 
   // ── 초기화 ───────────────────────────────────────────
   updateTransform();
   updateUndoRedoButtons();
   const savedUser = sessionStorage.getItem('notepad-user');
-  if (savedUser) { currentUser = savedUser; showApp(); initDog(); }
+  if (savedUser) { currentUser = savedUser; showApp(); initOneko(); }
 </script>
 </body>
 </html>
