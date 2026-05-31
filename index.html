@@ -190,28 +190,27 @@
 
     #file-input { display: none; }
 
-    /* ── 강아지 펫 ── */
+    /* ── 강아지 펫 (캔버스 내부, Y-정렬) ── */
     #pet-wrap {
-      position: fixed; z-index: 500; pointer-events: none;
-      display: none;
+      position: absolute; pointer-events: none;
+      width: 0; height: 0;
     }
-    #pet-wrap.visible { display: block; }
     #pet {
-      position: absolute; font-size: 34px; line-height: 1;
+      font-size: 34px; line-height: 1;
       pointer-events: auto; cursor: grab; user-select: none;
-      filter: drop-shadow(0 4px 4px rgba(0,0,0,0.18));
-      transform-origin: center bottom;
+      filter: drop-shadow(0 3px 3px rgba(0,0,0,0.2));
+      display: block; white-space: nowrap;
     }
     #pet.walking { animation: petBounce 0.32s ease-in-out infinite; }
-    #pet.held    { cursor: grabbing; animation: petWiggle 0.25s ease-in-out infinite; filter: drop-shadow(0 8px 8px rgba(0,0,0,0.22)); }
+    #pet.held    { cursor: grabbing; animation: petWiggle 0.25s ease-in-out infinite; }
     #pet-bubble  {
-      position: absolute; font-size: 15px; pointer-events: none;
+      position: absolute; font-size: 16px; pointer-events: none;
       animation: bubbleFloat 1.6s ease-in-out infinite;
-      white-space: nowrap;
+      left: 20px; bottom: 40px;
     }
-    @keyframes petBounce  { 0%,100%{transform:scaleX(var(--fx)) translateY(0)} 50%{transform:scaleX(var(--fx)) translateY(-6px)} }
-    @keyframes petWiggle  { 0%,100%{transform:scaleX(var(--fx)) rotate(-8deg) scale(1.15)} 50%{transform:scaleX(var(--fx)) rotate(8deg) scale(1.15)} }
-    @keyframes bubbleFloat{ 0%,100%{transform:translateY(0) scale(1)} 50%{transform:translateY(-4px) scale(1.08)} }
+    @keyframes petBounce  { 0%,100%{transform:scaleX(var(--fx,1)) translateY(0)} 50%{transform:scaleX(var(--fx,1)) translateY(-7px)} }
+    @keyframes petWiggle  { 0%,100%{transform:scaleX(var(--fx,1)) rotate(-8deg) scale(1.2)} 50%{transform:scaleX(var(--fx,1)) rotate(8deg) scale(1.2)} }
+    @keyframes bubbleFloat{ 0%,100%{transform:translateY(0)} 50%{transform:translateY(-4px)} }
 
     /* ── 국밥 프로필 카드 ── */
     .gukbap-card {
@@ -367,7 +366,13 @@
     <button class="logout-btn" onclick="logout()">로그아웃</button>
   </header>
   <div id="viewport">
-    <div id="canvas"></div>
+    <div id="canvas">
+      <!-- 강아지 펫 (캔버스 내부 — Y 정렬 가능) -->
+      <div id="pet-wrap" style="display:none; position:absolute; transform-origin:bottom center;">
+        <div id="pet" style="position:absolute; bottom:0; left:50%; transform:translateX(-50%);">🐕</div>
+        <div id="pet-bubble" style="position:absolute; display:none;"></div>
+      </div>
+    </div>
     <div id="sel-box"></div>
     <div class="canvas-hint">더블클릭: 메모 추가 · Space+드래그: 화면 이동 · 드래그: 범위 선택 · Shift+클릭: 복수 선택</div>
   </div>
@@ -375,11 +380,6 @@
 
 <input type="file" id="file-input" accept="image/*">
 
-<!-- 강아지 펫 -->
-<div id="pet-wrap">
-  <div id="pet">🐕</div>
-  <div id="pet-bubble"></div>
-</div>
 
 <script>
   const WORKER_URL = "https://eoulrimstudio-upload.eoulrimstudio.workers.dev";
@@ -771,6 +771,7 @@
     const p = prof(el.author);
     node.style.left = el.x + 'px'; node.style.top = el.y + 'px';
     node.style.width = el.w + 'px'; node.style.height = el.h + 'px';
+    node.style.zIndex = Math.floor(el.y + el.h);
     node.classList.toggle('selected', selected.has(el.id));
     node.classList.toggle('important-flag', !!el.important);
     const isPrincess = !!p.princess;
@@ -1047,43 +1048,54 @@
     });
   }
 
-  // ── 강아지 펫 ───────────────────────────────────────
+  // ── 강아지 펫 (캔버스 내부 — Y-정렬) ──────────────────
   const petWrap   = document.getElementById('pet-wrap');
   const petEl     = document.getElementById('pet');
   const petBubble = document.getElementById('pet-bubble');
 
   const dog = {
-    x: 300, y: 300,   // 현재 위치 (fixed 기준)
-    tx: 300, ty: 300, // 목표 위치
-    facing: 1,        // 1=오른쪽, -1=왼쪽
-    state: 'sit',     // 'walk' | 'sit' | 'sleep'
+    cx: 0, cy: 0,    // 캔버스 좌표
+    tx: 0, ty: 0,    // 목표 캔버스 좌표
+    facing: 1,
+    state: 'sit',    // 'walk' | 'sit' | 'sleep'
     held: false,
     timer: null,
   };
 
-  const DOG_STATES = {
-    walk:  { emoji: '🐕', bubble: '' },
-    sit:   { emoji: '🐶', bubble: '' },
-    sleep: { emoji: '🐶', bubble: '💤' },
-  };
-
   function renderDog() {
-    const s = DOG_STATES[dog.state];
-    petEl.textContent = s.emoji;
+    const emoji = dog.state === 'walk' ? '🐕' : '🐶';
+    petEl.textContent = emoji;
     petEl.style.setProperty('--fx', dog.facing);
-    petEl.style.left = (dog.x - 17) + 'px';
-    petEl.style.top  = (dog.y - 34) + 'px';
-    petEl.className  = dog.held ? 'held' : dog.state === 'walk' ? 'walking' : '';
-    petEl.style.transform = dog.held ? '' : `scaleX(${dog.facing})`;
+    if (!dog.held) petEl.style.transform = `scaleX(${dog.facing})`;
+    else petEl.style.transform = '';
+    petEl.className = dog.held ? 'held' : dog.state === 'walk' ? 'walking' : '';
 
-    if (s.bubble) {
-      petBubble.textContent = s.bubble;
-      petBubble.style.left = (dog.x + 10) + 'px';
-      petBubble.style.top  = (dog.y - 56) + 'px';
+    // 캔버스 좌표로 위치 설정 (발 위치가 cy)
+    petWrap.style.left = dog.cx + 'px';
+    petWrap.style.top  = dog.cy + 'px';
+    // 줌 보정 — 화면 크기는 항상 동일하게
+    petWrap.style.transform = `scale(${1 / vp.zoom})`;
+    // Y 정렬 zIndex
+    petWrap.style.zIndex = Math.floor(dog.cy) + 1;
+
+    if (dog.state === 'sleep') {
+      petBubble.textContent = '💤';
       petBubble.style.display = 'block';
     } else {
       petBubble.style.display = 'none';
     }
+  }
+
+  // 현재 화면에 보이는 캔버스 영역 기준 랜덤 목표
+  function dogRandomTarget() {
+    const r = viewportEl.getBoundingClientRect();
+    const margin = 80 / vp.zoom;
+    const tl = screenToCanvas(r.left + 10, r.top + 56);
+    const br = screenToCanvas(r.right - 10, r.bottom - 10);
+    return {
+      x: tl.x + margin + Math.random() * Math.max(0, br.x - tl.x - margin * 2),
+      y: tl.y + margin + Math.random() * Math.max(0, br.y - tl.y - margin * 2),
+    };
   }
 
   function dogNextAction() {
@@ -1091,11 +1103,8 @@
     if (dog.held) return;
     const r = Math.random();
     if (r < 0.55) {
-      // 새 목표로 이동
-      const margin = 60;
-      const headerH = 56;
-      dog.tx = margin + Math.random() * (window.innerWidth  - margin * 2);
-      dog.ty = headerH + margin + Math.random() * (window.innerHeight - headerH - margin * 2);
+      const t = dogRandomTarget();
+      dog.tx = t.x; dog.ty = t.y;
       dog.state = 'walk';
       dog.timer = setTimeout(dogNextAction, 4000 + Math.random() * 4000);
     } else if (r < 0.8) {
@@ -1108,16 +1117,16 @@
     renderDog();
   }
 
-  const SPEED = 1.8;
+  const DOG_SPEED = 1.8; // 캔버스 픽셀/프레임
   setInterval(() => {
     if (dog.held || dog.state !== 'walk') return;
-    const dx = dog.tx - dog.x;
-    const dy = dog.ty - dog.y;
+    const dx = dog.tx - dog.cx;
+    const dy = dog.ty - dog.cy;
     const dist = Math.sqrt(dx * dx + dy * dy);
     if (dist < 4) { dog.state = 'sit'; renderDog(); dogNextAction(); return; }
-    dog.x += (dx / dist) * SPEED;
-    dog.y += (dy / dist) * SPEED;
-    if (Math.abs(dx) > 1) dog.facing = dx > 0 ? 1 : -1;
+    dog.cx += (dx / dist) * DOG_SPEED;
+    dog.cy += (dy / dist) * DOG_SPEED;
+    if (Math.abs(dx) > 0.5) dog.facing = dx > 0 ? 1 : -1;
     renderDog();
   }, 16);
 
@@ -1131,27 +1140,27 @@
   });
   document.addEventListener('mousemove', e => {
     if (!dog.held) return;
-    dog.x = e.clientX;
-    dog.y = e.clientY;
-    if (dog.x < window.innerWidth / 2) dog.facing = -1; else dog.facing = 1;
+    const c = screenToCanvas(e.clientX, e.clientY);
+    if (c.x - dog.cx > 1) dog.facing = 1;
+    else if (dog.cx - c.x > 1) dog.facing = -1;
+    dog.cx = c.x; dog.cy = c.y;
     renderDog();
   });
   document.addEventListener('mouseup', () => {
     if (!dog.held) return;
     dog.held = false;
-    dog.tx = dog.x;
-    dog.ty = dog.y;
+    dog.tx = dog.cx; dog.ty = dog.cy;
     dog.state = 'sit';
     renderDog();
     dog.timer = setTimeout(dogNextAction, 1500);
   });
 
-  // 앱 진입 시 펫 활성화 (showApp 호출 후 실행)
   function initDog() {
-    petWrap.classList.add('visible');
-    dog.x = window.innerWidth  / 2;
-    dog.y = window.innerHeight / 2;
-    dog.tx = dog.x; dog.ty = dog.y;
+    petWrap.style.display = 'block';
+    const r = viewportEl.getBoundingClientRect();
+    const c = screenToCanvas(r.left + r.width / 2, r.top + r.height / 2);
+    dog.cx = c.x; dog.cy = c.y;
+    dog.tx = c.x; dog.ty = c.y;
     renderDog();
     dogNextAction();
   }
