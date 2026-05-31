@@ -190,6 +190,29 @@
 
     #file-input { display: none; }
 
+    /* ── 강아지 펫 ── */
+    #pet-wrap {
+      position: fixed; z-index: 500; pointer-events: none;
+      display: none;
+    }
+    #pet-wrap.visible { display: block; }
+    #pet {
+      position: absolute; font-size: 34px; line-height: 1;
+      pointer-events: auto; cursor: grab; user-select: none;
+      filter: drop-shadow(0 4px 4px rgba(0,0,0,0.18));
+      transform-origin: center bottom;
+    }
+    #pet.walking { animation: petBounce 0.32s ease-in-out infinite; }
+    #pet.held    { cursor: grabbing; animation: petWiggle 0.25s ease-in-out infinite; filter: drop-shadow(0 8px 8px rgba(0,0,0,0.22)); }
+    #pet-bubble  {
+      position: absolute; font-size: 15px; pointer-events: none;
+      animation: bubbleFloat 1.6s ease-in-out infinite;
+      white-space: nowrap;
+    }
+    @keyframes petBounce  { 0%,100%{transform:scaleX(var(--fx)) translateY(0)} 50%{transform:scaleX(var(--fx)) translateY(-6px)} }
+    @keyframes petWiggle  { 0%,100%{transform:scaleX(var(--fx)) rotate(-8deg) scale(1.15)} 50%{transform:scaleX(var(--fx)) rotate(8deg) scale(1.15)} }
+    @keyframes bubbleFloat{ 0%,100%{transform:translateY(0) scale(1)} 50%{transform:translateY(-4px) scale(1.08)} }
+
     /* ── 국밥 프로필 카드 ── */
     .gukbap-card {
       background: linear-gradient(135deg, #e8f5e9 0%, #b2dfdb 100%);
@@ -352,6 +375,12 @@
 
 <input type="file" id="file-input" accept="image/*">
 
+<!-- 강아지 펫 -->
+<div id="pet-wrap">
+  <div id="pet">🐕</div>
+  <div id="pet-bubble"></div>
+</div>
+
 <script>
   const WORKER_URL = "https://eoulrimstudio-upload.eoulrimstudio.workers.dev";
 
@@ -419,6 +448,7 @@
     currentUser = name;
     sessionStorage.setItem('notepad-user', name);
     showApp();
+    initDog();
   };
 
   window.logout = function() {
@@ -1017,11 +1047,120 @@
     });
   }
 
+  // ── 강아지 펫 ───────────────────────────────────────
+  const petWrap   = document.getElementById('pet-wrap');
+  const petEl     = document.getElementById('pet');
+  const petBubble = document.getElementById('pet-bubble');
+
+  const dog = {
+    x: 300, y: 300,   // 현재 위치 (fixed 기준)
+    tx: 300, ty: 300, // 목표 위치
+    facing: 1,        // 1=오른쪽, -1=왼쪽
+    state: 'sit',     // 'walk' | 'sit' | 'sleep'
+    held: false,
+    timer: null,
+  };
+
+  const DOG_STATES = {
+    walk:  { emoji: '🐕', bubble: '' },
+    sit:   { emoji: '🐶', bubble: '' },
+    sleep: { emoji: '🐶', bubble: '💤' },
+  };
+
+  function renderDog() {
+    const s = DOG_STATES[dog.state];
+    petEl.textContent = s.emoji;
+    petEl.style.setProperty('--fx', dog.facing);
+    petEl.style.left = (dog.x - 17) + 'px';
+    petEl.style.top  = (dog.y - 34) + 'px';
+    petEl.className  = dog.held ? 'held' : dog.state === 'walk' ? 'walking' : '';
+    petEl.style.transform = dog.held ? '' : `scaleX(${dog.facing})`;
+
+    if (s.bubble) {
+      petBubble.textContent = s.bubble;
+      petBubble.style.left = (dog.x + 10) + 'px';
+      petBubble.style.top  = (dog.y - 56) + 'px';
+      petBubble.style.display = 'block';
+    } else {
+      petBubble.style.display = 'none';
+    }
+  }
+
+  function dogNextAction() {
+    clearTimeout(dog.timer);
+    if (dog.held) return;
+    const r = Math.random();
+    if (r < 0.55) {
+      // 새 목표로 이동
+      const margin = 60;
+      const headerH = 56;
+      dog.tx = margin + Math.random() * (window.innerWidth  - margin * 2);
+      dog.ty = headerH + margin + Math.random() * (window.innerHeight - headerH - margin * 2);
+      dog.state = 'walk';
+      dog.timer = setTimeout(dogNextAction, 4000 + Math.random() * 4000);
+    } else if (r < 0.8) {
+      dog.state = 'sit';
+      dog.timer = setTimeout(dogNextAction, 2000 + Math.random() * 2000);
+    } else {
+      dog.state = 'sleep';
+      dog.timer = setTimeout(dogNextAction, 4000 + Math.random() * 4000);
+    }
+    renderDog();
+  }
+
+  const SPEED = 1.8;
+  setInterval(() => {
+    if (dog.held || dog.state !== 'walk') return;
+    const dx = dog.tx - dog.x;
+    const dy = dog.ty - dog.y;
+    const dist = Math.sqrt(dx * dx + dy * dy);
+    if (dist < 4) { dog.state = 'sit'; renderDog(); dogNextAction(); return; }
+    dog.x += (dx / dist) * SPEED;
+    dog.y += (dy / dist) * SPEED;
+    if (Math.abs(dx) > 1) dog.facing = dx > 0 ? 1 : -1;
+    renderDog();
+  }, 16);
+
+  // 드래그
+  petEl.addEventListener('mousedown', e => {
+    dog.held = true;
+    clearTimeout(dog.timer);
+    renderDog();
+    e.stopPropagation();
+    e.preventDefault();
+  });
+  document.addEventListener('mousemove', e => {
+    if (!dog.held) return;
+    dog.x = e.clientX;
+    dog.y = e.clientY;
+    if (dog.x < window.innerWidth / 2) dog.facing = -1; else dog.facing = 1;
+    renderDog();
+  });
+  document.addEventListener('mouseup', () => {
+    if (!dog.held) return;
+    dog.held = false;
+    dog.tx = dog.x;
+    dog.ty = dog.y;
+    dog.state = 'sit';
+    renderDog();
+    dog.timer = setTimeout(dogNextAction, 1500);
+  });
+
+  // 앱 진입 시 펫 활성화 (showApp 호출 후 실행)
+  function initDog() {
+    petWrap.classList.add('visible');
+    dog.x = window.innerWidth  / 2;
+    dog.y = window.innerHeight / 2;
+    dog.tx = dog.x; dog.ty = dog.y;
+    renderDog();
+    dogNextAction();
+  }
+
   // ── 초기화 ───────────────────────────────────────────
   updateTransform();
   updateUndoRedoButtons();
   const savedUser = sessionStorage.getItem('notepad-user');
-  if (savedUser) { currentUser = savedUser; showApp(); }
+  if (savedUser) { currentUser = savedUser; showApp(); initDog(); }
 </script>
 </body>
 </html>
