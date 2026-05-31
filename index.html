@@ -13,9 +13,60 @@
       min-height: 100vh;
     }
 
+    /* 토큰 설정 화면 */
+    #token-screen {
+      display: none;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      background: #141414;
+    }
+
+    .token-card {
+      background: #1e1e1e;
+      border-radius: 12px;
+      padding: 40px;
+      width: 420px;
+      text-align: center;
+      border: 1px solid #333;
+    }
+
+    .token-card h2 { color: white; font-size: 18px; margin-bottom: 10px; }
+    .token-card p { color: #888; font-size: 13px; margin-bottom: 24px; line-height: 1.6; }
+
+    .token-card input {
+      width: 100%;
+      padding: 12px 14px;
+      background: #2a2a2a;
+      border: 1px solid #444;
+      border-radius: 8px;
+      color: white;
+      font-size: 14px;
+      margin-bottom: 12px;
+      outline: none;
+      font-family: monospace;
+    }
+
+    .token-card input:focus { border-color: #667eea; }
+
+    .token-card button {
+      width: 100%;
+      padding: 12px;
+      background: #667eea;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    .token-card button:hover { background: #5a6fd6; }
+    .token-error { color: #e74c3c; font-size: 12px; margin-top: 10px; display: none; }
+
     /* 프로필 선택 화면 */
     #login-screen {
-      display: flex;
+      display: none;
       flex-direction: column;
       align-items: center;
       justify-content: center;
@@ -28,7 +79,6 @@
       font-size: 34px;
       font-weight: 400;
       margin-bottom: 48px;
-      letter-spacing: 0.5px;
     }
 
     .profile-list {
@@ -59,18 +109,8 @@
       user-select: none;
     }
 
-    .profile-card:hover .profile-avatar {
-      border-color: white;
-      transform: scale(1.05);
-    }
-
-    .profile-name {
-      color: #aaa;
-      font-size: 15px;
-      font-weight: 500;
-      transition: color 0.15s;
-    }
-
+    .profile-card:hover .profile-avatar { border-color: white; transform: scale(1.05); }
+    .profile-name { color: #aaa; font-size: 15px; font-weight: 500; transition: color 0.15s; }
     .profile-card:hover .profile-name { color: white; }
 
     /* 메인 앱 */
@@ -107,12 +147,7 @@
     .sync-indicator.syncing { color: #e67e22; background: #fff9f0; }
     .sync-indicator.error { color: #e74c3c; background: #fff0f0; }
 
-    .sync-dot {
-      width: 7px;
-      height: 7px;
-      border-radius: 50%;
-      background: currentColor;
-    }
+    .sync-dot { width: 7px; height: 7px; border-radius: 50%; background: currentColor; }
     .sync-indicator.synced .sync-dot { animation: pulse 2s infinite; }
 
     @keyframes pulse {
@@ -139,17 +174,11 @@
       font-size: 13px;
       color: #888;
       cursor: pointer;
-      transition: all 0.2s;
     }
     .logout-btn:hover { border-color: #999; color: #555; }
 
-    /* 레이아웃 */
-    .layout {
-      display: flex;
-      height: calc(100vh - 60px);
-    }
+    .layout { display: flex; height: calc(100vh - 60px); }
 
-    /* 사이드바 */
     .sidebar {
       width: 260px;
       background: white;
@@ -187,16 +216,11 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      transition: opacity 0.2s;
       line-height: 1;
     }
     .add-note-btn:hover { opacity: 0.85; }
 
-    .notes-list {
-      flex: 1;
-      overflow-y: auto;
-      padding: 8px;
-    }
+    .notes-list { flex: 1; overflow-y: auto; padding: 8px; }
 
     .note-item {
       padding: 12px 14px;
@@ -244,13 +268,7 @@
       border-radius: 10px;
     }
 
-    /* 에디터 */
-    .editor-area {
-      flex: 1;
-      display: flex;
-      flex-direction: column;
-      overflow: hidden;
-    }
+    .editor-area { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
 
     .editor-toolbar {
       padding: 12px 24px;
@@ -274,7 +292,6 @@
     #note-title-input::placeholder { color: #ccc; }
 
     .editor-actions { display: flex; align-items: center; gap: 8px; }
-
     .save-status { font-size: 12px; color: #aaa; }
 
     .delete-btn {
@@ -285,7 +302,6 @@
       border-radius: 8px;
       font-size: 13px;
       cursor: pointer;
-      transition: all 0.2s;
     }
     .delete-btn:hover { background: #fff0f0; }
 
@@ -321,6 +337,17 @@
   </style>
 </head>
 <body>
+
+<!-- GitHub 토큰 설정 (최초 1회) -->
+<div id="token-screen">
+  <div class="token-card">
+    <h2>🔑 초기 설정</h2>
+    <p>GitHub Personal Access Token을 입력하세요.<br>한 번만 입력하면 이 기기에 저장됩니다.<br><br>토큰 권한: <strong>Contents → Read and write</strong></p>
+    <input type="password" id="token-input" placeholder="github_pat_..." />
+    <button onclick="saveToken()">저장</button>
+    <div class="token-error" id="token-error"></div>
+  </div>
+</div>
 
 <!-- 프로필 선택 화면 -->
 <div id="login-screen">
@@ -372,7 +399,6 @@
         <div class="icon">📄</div>
         <p>왼쪽에서 메모를 선택하거나 새로 만드세요</p>
       </div>
-
       <div id="editor" style="display:none; flex-direction:column; flex:1; overflow:hidden;">
         <div class="editor-toolbar">
           <input type="text" id="note-title-input" placeholder="제목을 입력하세요" />
@@ -381,33 +407,51 @@
             <button class="delete-btn" onclick="deleteNote()">삭제</button>
           </div>
         </div>
-        <textarea id="note-content" placeholder="여기에 메모를 작성하세요...&#10;&#10;팀원들과 약 4초마다 자동 동기화됩니다 ✨"></textarea>
+        <textarea id="note-content" placeholder="여기에 메모를 작성하세요...&#10;&#10;저장하면 팀원들과 공유됩니다 ✨"></textarea>
       </div>
     </div>
   </div>
 </div>
 
 <script>
-  // ⚠️ Cloudflare Worker URL - 배포 후 교체하세요
-  const WORKER_URL = "https://eoulrimstudio-note.eoulrimstudio.workers.dev";
+  const REPO = "shinhp3/eoulrimstudio-note";
+  const FILE = "notes.json";
+  const RAW_URL = `https://raw.githubusercontent.com/${REPO}/main/${FILE}`;
+  const API_URL = `https://api.github.com/repos/${REPO}/contents/${FILE}`;
 
   let currentUser = null;
-  let currentNoteId = null;
   let notes = {};
+  let fileSha = null;
+  let currentNoteId = null;
   let saveTimer = null;
   let pollTimer = null;
   let isDirty = false;
+  let ghToken = null;
 
-  // ─── API 호출 ───
-  async function api(method, path, body) {
-    const res = await fetch(WORKER_URL + path, {
-      method,
-      headers: { "Content-Type": "application/json" },
-      body: body ? JSON.stringify(body) : undefined,
-    });
-    if (!res.ok) throw new Error(await res.text());
-    return res.json();
-  }
+  // ─── 토큰 설정 ───
+  window.saveToken = async function () {
+    const val = document.getElementById("token-input").value.trim();
+    if (!val) return;
+    const errEl = document.getElementById("token-error");
+    errEl.style.display = "none";
+
+    try {
+      const res = await fetch(API_URL, {
+        headers: { Authorization: `Bearer ${val}`, "Cache-Control": "no-cache" }
+      });
+      if (!res.ok) throw new Error();
+      ghToken = val;
+      localStorage.setItem("gh-token", val);
+      showLogin();
+    } catch {
+      errEl.textContent = "토큰이 올바르지 않거나 권한이 없습니다.";
+      errEl.style.display = "block";
+    }
+  };
+
+  document.getElementById("token-input").addEventListener("keydown", e => {
+    if (e.key === "Enter") window.saveToken();
+  });
 
   // ─── 프로필 선택 ───
   window.selectProfile = function (name) {
@@ -421,47 +465,72 @@
     clearInterval(pollTimer);
     currentUser = null;
     currentNoteId = null;
+    isDirty = false;
     document.getElementById("app").style.display = "none";
-    document.getElementById("login-screen").style.display = "flex";
+    showLogin();
   };
+
+  function showLogin() {
+    document.getElementById("login-screen").style.display = "flex";
+    document.getElementById("token-screen").style.display = "none";
+    document.getElementById("app").style.display = "none";
+  }
 
   function showApp() {
     document.getElementById("login-screen").style.display = "none";
     document.getElementById("app").style.display = "block";
     document.getElementById("user-name-display").textContent = currentUser;
     fetchNotes();
-    pollTimer = setInterval(fetchNotes, 4000);
+    pollTimer = setInterval(() => { if (!isDirty) fetchNotes(); }, 10000);
   }
 
-  // ─── 자동 로그인 복원 ───
-  const savedUser = sessionStorage.getItem("notepad-user");
-  if (savedUser) {
-    currentUser = savedUser;
-    showApp();
-  }
-
-  // ─── 메모 목록 가져오기 ───
+  // ─── GitHub에서 notes.json 읽기 ───
   async function fetchNotes() {
     setSyncStatus("syncing", "동기화 중...");
     try {
-      const data = await api("GET", "/api/notes");
-      const prevNotes = notes;
+      const res = await fetch(RAW_URL + "?t=" + Date.now());
+      const data = await res.json();
       notes = data;
+
+      // sha는 API로 가져와야 함 (쓰기용)
+      const apiRes = await fetch(API_URL, {
+        headers: { Authorization: `Bearer ${ghToken}` }
+      });
+      const meta = await apiRes.json();
+      fileSha = meta.sha;
+
       renderNotesList();
 
-      // 현재 편집 중인 메모 내용 갱신 (내가 편집 중이 아닐 때만)
+      // 현재 편집 중 아닐 때만 내용 갱신
       if (currentNoteId && notes[currentNoteId] && !isDirty) {
-        const remote = notes[currentNoteId];
-        const titleEl = document.getElementById("note-title-input");
-        const contentEl = document.getElementById("note-content");
-        if (titleEl.value !== (remote.title || "")) titleEl.value = remote.title || "";
-        if (contentEl.value !== (remote.content || "")) contentEl.value = remote.content || "";
+        document.getElementById("note-title-input").value = notes[currentNoteId].title || "";
+        document.getElementById("note-content").value = notes[currentNoteId].content || "";
       }
 
       setSyncStatus("synced", "동기화됨");
     } catch {
       setSyncStatus("error", "연결 오류");
     }
+  }
+
+  // ─── GitHub에 notes.json 저장 ───
+  async function pushNotes() {
+    const content = btoa(unescape(encodeURIComponent(JSON.stringify(notes, null, 2))));
+    const res = await fetch(API_URL, {
+      method: "PUT",
+      headers: {
+        Authorization: `Bearer ${ghToken}`,
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        message: `메모 업데이트 - ${currentUser}`,
+        content,
+        sha: fileSha
+      })
+    });
+    if (!res.ok) throw new Error();
+    const data = await res.json();
+    fileSha = data.content.sha;
   }
 
   function setSyncStatus(state, text) {
@@ -498,12 +567,9 @@
     currentNoteId = id;
     isDirty = false;
     const note = notes[id];
-    if (!note) return;
-
     renderNotesList();
     document.getElementById("empty-state").style.display = "none";
-    const editor = document.getElementById("editor");
-    editor.style.display = "flex";
+    document.getElementById("editor").style.display = "flex";
     document.getElementById("note-title-input").value = note.title || "";
     document.getElementById("note-content").value = note.content || "";
     document.getElementById("save-status").textContent = "";
@@ -512,56 +578,46 @@
   // ─── 새 메모 ───
   window.createNote = async function () {
     const id = "note_" + Date.now();
+    notes[id] = { id, title: "새 메모", content: "", author: currentUser, updatedAt: Date.now(), createdAt: Date.now() };
+    renderNotesList();
+    selectNote(id);
+    setSyncStatus("syncing", "저장 중...");
     try {
-      const note = await api("POST", "/api/notes", {
-        id,
-        title: "새 메모",
-        content: "",
-        author: currentUser,
-      });
-      notes[id] = note;
-      renderNotesList();
-      selectNote(id);
-      setTimeout(() => {
-        const t = document.getElementById("note-title-input");
-        t.focus(); t.select();
-      }, 50);
+      await pushNotes();
+      setSyncStatus("synced", "동기화됨");
     } catch {
-      alert("메모 생성 실패. 연결을 확인해주세요.");
+      setSyncStatus("error", "저장 실패");
     }
+    setTimeout(() => { const t = document.getElementById("note-title-input"); t.focus(); t.select(); }, 50);
   };
 
   // ─── 메모 삭제 ───
   window.deleteNote = async function () {
-    if (!currentNoteId) return;
-    if (!confirm("이 메모를 삭제할까요?")) return;
-    try {
-      await api("DELETE", `/api/notes/${currentNoteId}`);
-      delete notes[currentNoteId];
-      currentNoteId = null;
-      isDirty = false;
-      renderNotesList();
-      document.getElementById("editor").style.display = "none";
-      document.getElementById("empty-state").style.display = "flex";
-    } catch {
-      alert("삭제 실패.");
-    }
+    if (!currentNoteId || !confirm("이 메모를 삭제할까요?")) return;
+    delete notes[currentNoteId];
+    currentNoteId = null;
+    isDirty = false;
+    renderNotesList();
+    document.getElementById("editor").style.display = "none";
+    document.getElementById("empty-state").style.display = "flex";
+    setSyncStatus("syncing", "저장 중...");
+    try { await pushNotes(); setSyncStatus("synced", "동기화됨"); }
+    catch { setSyncStatus("error", "저장 실패"); }
   };
 
   // ─── 자동 저장 ───
   async function saveNote() {
     if (!currentNoteId) return;
-    const title = document.getElementById("note-title-input").value;
-    const content = document.getElementById("note-content").value;
+    notes[currentNoteId] = {
+      ...notes[currentNoteId],
+      title: document.getElementById("note-title-input").value,
+      content: document.getElementById("note-content").value,
+      author: currentUser,
+      updatedAt: Date.now()
+    };
     document.getElementById("save-status").textContent = "저장 중...";
     try {
-      const updated = await api("POST", "/api/notes", {
-        id: currentNoteId,
-        title,
-        content,
-        author: currentUser,
-      });
-      notes[currentNoteId] = updated;
+      await pushNotes();
       isDirty = false;
       document.getElementById("save-status").textContent = "저장됨 ✓";
       renderNotesList();
@@ -574,7 +630,7 @@
     isDirty = true;
     document.getElementById("save-status").textContent = "입력 중...";
     clearTimeout(saveTimer);
-    saveTimer = setTimeout(saveNote, 1000);
+    saveTimer = setTimeout(saveNote, 1500);
   }
 
   document.getElementById("note-title-input").addEventListener("input", scheduleSave);
@@ -585,18 +641,23 @@
     if (!ts) return "";
     const d = new Date(ts);
     const now = new Date();
-    if (d.toDateString() === now.toDateString()) {
+    if (d.toDateString() === now.toDateString())
       return d.toLocaleTimeString("ko-KR", { hour: "2-digit", minute: "2-digit" });
-    }
     return d.toLocaleDateString("ko-KR", { month: "short", day: "numeric" });
   }
 
   function escapeHtml(str) {
-    return String(str)
-      .replace(/&/g, "&amp;")
-      .replace(/</g, "&lt;")
-      .replace(/>/g, "&gt;")
-      .replace(/"/g, "&quot;");
+    return String(str).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+  }
+
+  // ─── 초기화 ───
+  ghToken = localStorage.getItem("gh-token");
+  if (!ghToken) {
+    document.getElementById("token-screen").style.display = "flex";
+  } else {
+    const savedUser = sessionStorage.getItem("notepad-user");
+    if (savedUser) { currentUser = savedUser; showApp(); }
+    else showLogin();
   }
 </script>
 </body>
