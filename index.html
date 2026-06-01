@@ -251,9 +251,10 @@
 
     /* ── oneko 고양이 ── */
     #oneko-cat {
-      width: 32px; height: 32px;
+      width: 64px; height: 64px;
       position: fixed; pointer-events: auto;
       image-rendering: pixelated;
+      background-size: 512px 512px;
       z-index: 9999; cursor: grab;
       transform-origin: top center;
       transition: filter 0.1s;
@@ -1367,7 +1368,7 @@
 
     function setSprite(name, frame) {
       const s = spriteSets[name][frame % spriteSets[name].length];
-      onekoEl.style.backgroundPosition = `${s[0]*32}px ${s[1]*32}px`;
+      onekoEl.style.backgroundPosition = `${s[0]*64}px ${s[1]*64}px`;
     }
     function resetIdle() { idleAnimation = null; idleAnimationFrame = 0; }
 
@@ -1422,8 +1423,8 @@
       nekoPosY -= (dy / dist) * SPEED;
       nekoPosX = Math.min(Math.max(16, nekoPosX), window.innerWidth  - 16);
       nekoPosY = Math.min(Math.max(16, nekoPosY), window.innerHeight - 16);
-      onekoEl.style.left = (nekoPosX - 16) + 'px';
-      onekoEl.style.top  = (nekoPosY - 16) + 'px';
+      onekoEl.style.left = (nekoPosX - 32) + 'px';
+      onekoEl.style.top  = (nekoPosY - 32) + 'px';
     }
 
     let lastTs;
