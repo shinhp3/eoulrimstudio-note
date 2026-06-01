@@ -159,13 +159,14 @@
     }
 
     /* ── 스티커 노트 ── */
-    .el-body { flex: 1; border-radius: 0; padding: 10px; min-height: 0; }
+    .el-body { flex: 1; border-radius: 0; padding: 10px; min-height: 0; user-select: none; }
     .el-text {
       width: 100%; height: 100%; border: none; outline: none; resize: none;
       font-size: 13px; line-height: 1.75; background: transparent;
       color: #111; font-weight: 600; font-family: inherit; pointer-events: none; cursor: default;
+      user-select: none;
     }
-    .el-text.editing { pointer-events: auto; cursor: text; }
+    .el-text.editing { pointer-events: auto; cursor: text; user-select: text; }
 
     /* ── 이미지 ── */
     .el-img-body { flex: 1; border-radius: 0 0 8px 8px; overflow: hidden; background: #f8f8f8; }
@@ -1076,7 +1077,7 @@
     onekoEl = document.createElement('div');
     onekoEl.id = 'oneko-cat';
     onekoEl.style.backgroundImage =
-      "url('https://raw.githubusercontent.com/adryd325/oneko.js/14bab15a755d0e35cd4ae19c931d96d306f5a4e3/oneko.gif')";
+      "url('https://cdn.jsdelivr.net/gh/adryd325/oneko.js@14bab15a755d0e35cd4ae19c931d96d306f5a4e3/oneko.gif')";
     onekoEl.style.left = '32px';
     onekoEl.style.top  = '32px';
     document.body.appendChild(onekoEl);
