@@ -191,6 +191,20 @@
 
     #file-input { display: none; }
 
+    /* ── 휴지통 ── */
+    #trash-bin {
+      position: fixed; right: 24px; bottom: 32px;
+      width: 64px; height: 72px;
+      display: none; flex-direction: column; align-items: center; justify-content: center;
+      font-size: 40px; border-radius: 16px; z-index: 1000;
+      background: rgba(255,255,255,0.9); border: 2.5px dashed #ccc;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.1);
+      transition: all 0.15s; cursor: default; user-select: none;
+    }
+    #trash-bin.visible { display: flex; }
+    #trash-bin.over { background: #fff0f0; border-color: #e74c3c; border-style: solid; transform: scale(1.12); box-shadow: 0 6px 24px rgba(231,76,60,0.3); }
+    .el.sucked-in { transition: transform 0.35s cubic-bezier(0.4,0,1,1), opacity 0.35s; transform: scale(0) !important; opacity: 0 !important; }
+
     /* ── oneko 고양이 ── */
     #oneko-cat {
       width: 32px; height: 32px;
@@ -361,6 +375,7 @@
 </div>
 
 <input type="file" id="file-input" accept="image/*">
+<div id="trash-bin">🗑️</div>
 
 
 <script>
@@ -862,19 +877,45 @@
       return;
     }
 
-    // 요소 클릭 → 이동 준비
+    // 요소 클릭 → 이동 or Alt+드래그 복사
     const elDiv = e.target.closest('.el');
     if (elDiv) {
       const id = elDiv.dataset.id;
       const el = elements.find(x => x.id === id);
       if (!el) return;
       selectEl(id, e.shiftKey);
-      // 선택된 모든 요소의 시작 위치 기록
+
+      if (e.altKey) {
+        // Alt+드래그 → 선택된 요소 복제 후 이동
+        const clones = [...selected].map(sid => {
+          const src = elements.find(x => x.id === sid);
+          if (!src) return null;
+          const clone = JSON.parse(JSON.stringify(src));
+          clone.id = newId();
+          clone.x += 16; clone.y += 16;
+          clone.createdAt = clone.updatedAt = Date.now();
+          elements.push(clone);
+          return { origId: sid, cloneId: clone.id };
+        }).filter(Boolean);
+        renderElements();
+        selected.clear();
+        clones.forEach(c => selected.add(c.cloneId));
+        updateSelectionVisuals();
+        const startPositions = clones.map(c => {
+          const ce = elements.find(x => x.id === c.cloneId);
+          return ce ? { id: c.cloneId, x: ce.x, y: ce.y } : null;
+        }).filter(Boolean);
+        action = { type: 'move', sx: e.clientX, sy: e.clientY, startPositions, moved: false };
+        e.preventDefault();
+        return;
+      }
+
       const startPositions = [...selected].map(sid => {
         const sel = elements.find(x => x.id === sid);
         return sel ? { id: sid, x: sel.x, y: sel.y } : null;
       }).filter(Boolean);
       action = { type: 'move', sx: e.clientX, sy: e.clientY, startPositions, moved: false };
+      trashBin.classList.add('visible');
       e.preventDefault();
       return;
     }
@@ -939,9 +980,53 @@
     }
   });
 
+  const trashBin = document.getElementById('trash-bin');
+
+  function isOverTrash(cx, cy) {
+    const r = trashBin.getBoundingClientRect();
+    return cx >= r.left && cx <= r.right && cy >= r.top && cy <= r.bottom;
+  }
+
+  document.addEventListener('mousemove', e => {
+    if (action?.type === 'move') {
+      trashBin.classList.toggle('over', isOverTrash(e.clientX, e.clientY));
+    }
+  });
+
   document.addEventListener('mouseup', e => {
     if (action?.type === 'pan') viewportEl.classList.remove('panning');
-    if (action?.type === 'move' && action.moved) snapshot();
+    if (action?.type === 'move') {
+      if (action.moved && isOverTrash(e.clientX, e.clientY)) {
+        // 휴지통으로 드래그 — 슈욱 삭제 애니메이션
+        const toDelete = [...selected];
+        toDelete.forEach(id => {
+          const node = nodeMap.get(id);
+          if (node) {
+            const tr = trashBin.getBoundingClientRect();
+            const nr = node.getBoundingClientRect();
+            const sx = ((tr.left + tr.width/2) - (nr.left + nr.width/2)) / vp.zoom;
+            const sy = ((tr.top  + tr.height/2) - (nr.top  + nr.height/2)) / vp.zoom;
+            node.style.transition = 'transform 0.32s cubic-bezier(0.4,0,1,1), opacity 0.32s';
+            node.style.transform  = `translate(${sx}px,${sy}px) scale(0)`;
+            node.style.opacity    = '0';
+          }
+        });
+        trashBin.textContent = '💥';
+        setTimeout(() => {
+          trashBin.textContent = '🗑️';
+          elements = elements.filter(e => !toDelete.includes(e.id));
+          toDelete.forEach(id => {
+            const node = nodeMap.get(id);
+            if (node) { canvasEl.removeChild(node); nodeMap.delete(id); }
+          });
+          selected.clear();
+          snapshot(); scheduleSave();
+        }, 340);
+      } else if (action.moved) {
+        snapshot();
+      }
+      trashBin.classList.remove('visible', 'over');
+    }
     if (action?.type === 'resize') snapshot();
     if (action?.type === 'marquee') { selBox.style.display = 'none'; }
     action = null;
