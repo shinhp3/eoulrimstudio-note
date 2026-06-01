@@ -174,12 +174,21 @@
 
     /* ── 리사이즈 핸들 ── */
     .resize-handle {
-      position: absolute; right: -6px; bottom: -6px;
-      width: 13px; height: 13px; border-radius: 3px;
-      cursor: nwse-resize; background: white; border: 2px solid #667eea;
+      position: absolute; width: 10px; height: 10px; border-radius: 3px;
+      background: white; border: 2px solid #667eea;
       opacity: 0; transition: opacity 0.15s; z-index: 10;
     }
     .el.selected .resize-handle { opacity: 1; }
+    /* 모서리 */
+    .resize-handle[data-dir="se"] { right:-5px; bottom:-5px; cursor:nwse-resize; }
+    .resize-handle[data-dir="sw"] { left:-5px;  bottom:-5px; cursor:nesw-resize; }
+    .resize-handle[data-dir="ne"] { right:-5px; top:-5px;    cursor:nesw-resize; }
+    .resize-handle[data-dir="nw"] { left:-5px;  top:-5px;    cursor:nwse-resize; }
+    /* 변 */
+    .resize-handle[data-dir="e"]  { right:-5px; top:50%; transform:translateY(-50%); cursor:ew-resize; }
+    .resize-handle[data-dir="w"]  { left:-5px;  top:50%; transform:translateY(-50%); cursor:ew-resize; }
+    .resize-handle[data-dir="s"]  { bottom:-5px; left:50%; transform:translateX(-50%); cursor:ns-resize; }
+    .resize-handle[data-dir="n"]  { top:-5px;    left:50%; transform:translateX(-50%); cursor:ns-resize; }
 
     /* ── 힌트 ── */
     .canvas-hint {
@@ -861,10 +870,13 @@
     badge.textContent = '★';
     div.appendChild(badge);
 
-    const handle = document.createElement('div');
-    handle.className = 'resize-handle';
-    handle.dataset.resize = 'true';
-    div.appendChild(handle);
+    ['se','sw','ne','nw','e','w','s','n'].forEach(dir => {
+      const h = document.createElement('div');
+      h.className = 'resize-handle';
+      h.dataset.resize = dir;
+      h.dataset.dir = dir;
+      div.appendChild(h);
+    });
 
     return div;
   }
@@ -951,12 +963,13 @@
 
     // 리사이즈 핸들
     if (e.target.dataset.resize) {
+      const dir = e.target.dataset.resize;
       const elDiv = e.target.closest('.el');
       const id = elDiv?.dataset.id;
       const el = elements.find(x => x.id === id);
       if (!el) return;
       if (!selected.has(id)) { selected.clear(); selected.add(id); updateSelectionVisuals(); }
-      action = { type: 'resize', id, sx: e.clientX, sy: e.clientY, sw: el.w, sh: el.h };
+      action = { type: 'resize', dir, id, sx: e.clientX, sy: e.clientY, sw: el.w, sh: el.h, sx0: el.x, sy0: el.y };
       e.preventDefault();
       return;
     }
@@ -1000,7 +1013,6 @@
       }).filter(Boolean);
       action = { type: 'move', sx: e.clientX, sy: e.clientY, startPositions, moved: false };
       trashBin.classList.add('visible');
-      throwZoneHint.classList.add('visible');
       e.preventDefault();
       return;
     }
@@ -1040,8 +1052,12 @@
     } else if (action.type === 'resize') {
       const el = elements.find(x => x.id === action.id);
       if (!el) return;
-      el.w = Math.max(100, action.sw + dx / vp.zoom);
-      el.h = Math.max(60,  action.sh + dy / vp.zoom);
+      const ddx = dx / vp.zoom, ddy = dy / vp.zoom;
+      const dir = action.dir;
+      if (dir.includes('e'))  el.w = Math.max(100, action.sw + ddx);
+      if (dir.includes('s'))  el.h = Math.max(60,  action.sh + ddy);
+      if (dir.includes('w'))  { const nw = Math.max(100, action.sw - ddx); el.x = action.sx0 + (action.sw - nw); el.w = nw; }
+      if (dir.includes('n'))  { const nh = Math.max(60,  action.sh - ddy); el.y = action.sy0 + (action.sh - nh); el.h = nh; }
       syncStyle(el);
       scheduleSave();
 
@@ -1069,12 +1085,10 @@
 
   const throwZoneHint = document.getElementById('throw-zone-hint');
 
-  function isThrowZone(cx) { return cx > window.innerWidth * 0.72; }
   function isOverHoop(cx, cy) {
     const r = trashBin.getBoundingClientRect();
-    return cx >= r.left - 20 && cx <= r.right + 20 && cy >= r.top - 20 && cy <= r.bottom + 20;
+    return cx >= r.left - 16 && cx <= r.right + 16 && cy >= r.top - 16 && cy <= r.bottom + 16;
   }
-  function canThrow(cx) { return isThrowZone(cx); }
 
   function shootIntoHoop(toDelete, releaseX, releaseY) {
     const tr = trashBin.getBoundingClientRect();
@@ -1140,16 +1154,14 @@
 
   document.addEventListener('mousemove', e => {
     if (action?.type === 'move') {
-      const inZone = canThrow(e.clientX);
-      throwZoneHint.classList.toggle('active', inZone);
-      trashBin.classList.toggle('over', inZone);
+      trashBin.classList.toggle('over', isOverHoop(e.clientX, e.clientY));
     }
   });
 
   document.addEventListener('mouseup', e => {
     if (action?.type === 'pan') viewportEl.classList.remove('panning');
     if (action?.type === 'move') {
-      if (action.moved && canThrow(e.clientX)) {
+      if (action.moved && isOverHoop(e.clientX, e.clientY)) {
         shootIntoHoop([...selected], e.clientX, e.clientY);
       } else if (action.moved) {
         snapshot();
