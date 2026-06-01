@@ -261,8 +261,27 @@
       position: fixed; pointer-events: auto;
       image-rendering: pixelated;
       z-index: 9999; cursor: grab;
+      transform-origin: top center;
+      transition: filter 0.1s;
     }
-    #oneko-cat.held { cursor: grabbing; filter: drop-shadow(0 4px 8px rgba(0,0,0,0.3)); transform: scale(1.2); }
+    #oneko-cat.grabbing-alert {
+      animation: nekoScruffGrab 0.18s ease-out forwards;
+    }
+    @keyframes nekoScruffGrab {
+      0%   { transform: scale(1) rotate(0deg); }
+      40%  { transform: scale(1.3) rotate(-12deg); }
+      70%  { transform: scale(1.15) rotate(8deg); }
+      100% { transform: scale(1.15) rotate(0deg); }
+    }
+    #oneko-cat.held {
+      cursor: grabbing;
+      filter: drop-shadow(0 6px 10px rgba(0,0,0,0.35));
+      animation: nekoDangle 1.2s ease-in-out infinite;
+    }
+    @keyframes nekoDangle {
+      0%,100% { transform: scale(1.15) rotate(-6deg); }
+      50%      { transform: scale(1.15) rotate(6deg); }
+    }
     #oneko-toggle-btn {
       position: fixed; bottom: 16px; left: 16px;
       background: rgba(255,255,255,0.92); border: 1.5px solid #ddd;
@@ -1288,16 +1307,29 @@
 
     onekoEl.addEventListener('mousedown', e => {
       if (e.button !== 0) return;
+      e.preventDefault();
       e.stopPropagation();
       onekoHeld = true;
       holdOffX = nekoPosX - e.clientX;
       holdOffY = nekoPosY - e.clientY;
-      onekoEl.classList.add('held');
+      document.body.style.userSelect = 'none';
+      // 잡히는 순간: alert → tired (뒷덜미 잡힌 포즈)
+      setSprite('alert', 0);
+      onekoEl.classList.add('grabbing-alert');
+      onekoEl.addEventListener('animationend', () => {
+        onekoEl.classList.remove('grabbing-alert');
+        onekoEl.classList.add('held');
+        setSprite('tired', 0);
+      }, { once: true });
     });
     document.addEventListener('mouseup', e => {
       if (onekoHeld) {
         onekoHeld = false;
-        onekoEl.classList.remove('held');
+        onekoEl.classList.remove('held', 'grabbing-alert');
+        document.body.style.userSelect = '';
+        // 놓이는 순간: alert 한 번
+        setSprite('alert', 0);
+        idleTime = 5;
         mousePosX = e.clientX;
         mousePosY = e.clientY;
       }
@@ -1311,7 +1343,8 @@
         nekoPosY = Math.min(Math.max(16, nekoPosY), window.innerHeight - 16);
         onekoEl.style.left = (nekoPosX - 16) + 'px';
         onekoEl.style.top  = (nekoPosY - 16) + 'px';
-        setSprite('scratchSelf', Math.floor(Date.now()/120));
+        // held 중에는 tired 스프라이트 고정 (nekoDangle CSS가 회전 처리)
+        setSprite('tired', 0);
       }
       mousePosX = e.clientX; mousePosY = e.clientY;
     });
